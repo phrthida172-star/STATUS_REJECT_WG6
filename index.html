@@ -171,9 +171,15 @@ tr:hover{background:#f8fafc}
   <div class="kpis">
     <div class="kpi"><small>ยอดรีเจ็ค / ร้องเรียนรวม (ชิ้น)</small><div id="kRej">0</div></div>
     <div class="kpi g"><small>ของเสียเฉลี่ย (%)</small><div id="kWst">0.00%</div></div>
-    <div class="kpi gr"><small>CAPA : ตอบแล้ว</small><div id="kDone" style="color:#059669">0 เคส</div></div>
-    <div class="kpi am"><small>CAPA : ยังไม่ตอบ (ในกำหนด)</small><div id="kInDue" style="color:#d97706">0 เคส</div></div>
-    <div class="kpi r kpi-clickable" onclick="openOverdueModal()" title="คลิกเพื่อดูรายการที่เลยกำหนด">
+    <div class="kpi gr kpi-clickable" onclick="openCapaStatusModal('ตอบแล้ว')" title="คลิกเพื่อดูรายการที่ตอบแล้ว">
+      <small style="color:#059669">✅ CAPA : ตอบแล้ว (คลิกดูรายการ)</small>
+      <div id="kDone" style="color:#059669">0 เคส</div>
+    </div>
+    <div class="kpi am kpi-clickable" onclick="openCapaStatusModal('อยู่ในกำหนด')" title="คลิกเพื่อดูรายการที่อยู่ในกำหนด">
+      <small style="color:#d97706">⏳ CAPA : ยังไม่ตอบ (ในกำหนด) (คลิกดูรายการ)</small>
+      <div id="kInDue" style="color:#d97706">0 เคส</div>
+    </div>
+    <div class="kpi r kpi-clickable" onclick="openCapaStatusModal('เลยกำหนด')" title="คลิกเพื่อดูรายการที่เลยกำหนด">
       <small style="color:#b91c1c">⚠️ CAPA : เลยกำหนด (คลิกดูรายการ)</small>
       <div id="kOver" style="color:#dc2626">0 เคส</div>
     </div>
@@ -254,7 +260,18 @@ tr:hover{background:#f8fafc}
         <div class="fg"><label>ชื่อบริษัทลูกค้า *</label><input type="text" id="iCus" required></div>
         <div class="fg"><label>หัวหน้าเครื่อง *</label><input type="text" id="iSup" required></div>
         <div class="fg"><label>ผู้รับผิดชอบ CAPA (CAPA Owner) *</label><input type="text" id="iOwner" required placeholder="ระบุชื่อผู้รับผิดชอบทำ CAPA"></div>
-        <div class="fg"><label>หมายเลขเครื่องจักร / แผนก *</label><select id="iMac" required><option value="">-- เลือกเครื่องจักร/แผนก --</option></select></div>
+        
+        <!-- ส่วนเลือกเครื่องจักรหลายตัว + ระบุเองได้ -->
+        <div class="fg">
+          <label>หมายเลขเครื่องจักร / แผนก (เลือกได้หลายเครื่อง) *</label>
+          <select id="iMac" multiple required style="height: 110px;"></select>
+          <small style="color:#64748b;font-size:0.75rem">กด Ctrl (หรือ Cmd) ค้างไว้เพื่อเลือกหลายเครื่อง</small>
+        </div>
+        <div class="fg">
+          <label>ระบุเครื่องจักรเพิ่มเติมเอง (ถ้ามี)</label>
+          <input type="text" id="iMacCustom" placeholder="เช่น Machine X, Machine Y (คั่นด้วยจุลภาค)">
+        </div>
+
         <div class="fg"><label>วันที่รับเข้ารีเจ็ค / ร้องเรียน *</label><input type="date" id="iRecDate" required></div>
         <div class="fg"><label>วันที่เริ่มคัด</label><input type="date" id="iStartDate" onchange="chkSortingStatus()"></div>
         <div class="fg"><label>วันที่คัดเสร็จ</label><input type="date" id="iEndDate" onchange="chkSortingStatus()"></div>
@@ -291,7 +308,7 @@ tr:hover{background:#f8fafc}
 
       <!-- ส่วนรายละเอียดปัญหาที่พบ -->
       <div class="fg" style="margin-bottom:16px">
-        <label style="color:#2e1065;font-size:0.9rem">🔍 รายละเอียดปัญหาที่พบ (คลิกเลือกหัวข้อเพื่อระบุจำนวน รายละเอียด และแนบรูปภาพอัตโนมัติ)</label>
+        <label style="color:#2e1065;font-size:0.9rem">🔍 รายละเอียดปัญหาที่พบ (คลิกเลือกหัวข้อเพื่อระบุจำนวน รายละเอียด และแนบรูปภาพได้หลายรูป)</label>
         <div id="iBox" class="igrid"></div>
       </div>
 
@@ -344,12 +361,12 @@ tr:hover{background:#f8fafc}
   </div>
 </div>
 
-<!-- Modal แสดงรายการที่เลยกำหนด -->
-<div id="mOverdue" class="modal hide">
+<!-- Modal แสดงรายการตามสถานะ CAPA (แทนที่ modal เก่าที่ดูได้แค่อย่างเดียว) -->
+<div id="mCapaListModal" class="modal hide">
   <div class="mbox" style="max-width:750px">
     <div class="mhead">
-      <h3 style="color:#dc2626">⚠️ รายการที่ยังไม่ตอบและเลยกำหนด (Overdue)</h3>
-      <button type="button" class="btn btn-out" style="padding:4px 10px" onclick="closeModal('mOverdue')">✕</button>
+      <h3 id="capaListModalTitle" style="color:#2e1065">📋 รายการ CAPA</h3>
+      <button type="button" class="btn btn-out" style="padding:4px 10px" onclick="closeModal('mCapaListModal')">✕</button>
     </div>
     <div class="table-responsive" style="max-height:60vh;overflow-y:auto">
       <table>
@@ -362,11 +379,11 @@ tr:hover{background:#f8fafc}
             <th>จำนวน</th>
           </tr>
         </thead>
-        <tbody id="overdueModalBody"></tbody>
+        <tbody id="capaListModalBody"></tbody>
       </table>
     </div>
     <div class="mfoot">
-      <button type="button" class="btn btn-pri" onclick="closeModal('mOverdue')">ปิดหน้าต่าง</button>
+      <button type="button" class="btn btn-pri" onclick="closeModal('mCapaListModal')">ปิดหน้าต่าง</button>
     </div>
   </div>
 </div>
@@ -399,13 +416,17 @@ tr:hover{background:#f8fafc}
   </div>
 </div>
 
-<!-- Modal รายละเอียดปัญหา -->
+<!-- Modal รายละเอียดปัญหา (รองรับการแนบหลายรูป) -->
 <div id="mIss" class="modal hide">
-  <div class="mbox" style="max-width:420px">
+  <div class="mbox" style="max-width:460px">
     <div class="mhead"><h3 id="mIssT" style="color:#2e1065;font-size:1rem">รายละเอียดปัญหาที่พบ</h3><button type="button" class="btn btn-out" style="padding:4px 10px" onclick="closeModal('mIss')">✕</button></div>
     <div class="fg" style="margin-bottom:10px"><label>จำนวนที่พบ (ชิ้น)</label><input type="number" id="mIQty" min="0"></div>
     <div class="fg" style="margin-bottom:10px"><label>รายละเอียดปัญหาเพิ่มเติม</label><textarea id="mIDesc" rows="3"></textarea></div>
-    <div class="fg"><label>แนบรูปภาพตัวอย่าง (บีบอัดอัตโนมัติ)</label><input type="file" id="mIFile" accept="image/*" onchange="compressAndPrevImg(event)"><img id="mIPrev" style="max-height:110px;margin-top:6px;border-radius:8px;display:none"></div>
+    <div class="fg">
+      <label>แนบรูปภาพตัวอย่าง (เลือกได้หลายรูป / เพิ่มหลายครั้งได้)</label>
+      <input type="file" id="mIFile" accept="image/*" multiple onchange="compressAndAddImgs(event)">
+      <div id="mIPrevContainer" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:150px;overflow-y:auto;"></div>
+    </div>
     <div class="mfoot">
       <button type="button" class="btn btn-out" onclick="closeModal('mIss')">ยกเลิก</button>
       <button type="button" class="btn btn-pri" onclick="okIss()">ยืนยัน</button>
@@ -429,7 +450,7 @@ function doPost(e) {
     let txt = [], clean = {};
     if (d.issues) Object.entries(d.issues).forEach(([k,v]) => {
       txt.push(k+": "+(v.qty||0)+" ชิ้น"+(v.desc?" ("+v.desc+")":""));
-      clean[k] = {qty: Number(v.qty)||0, desc: v.desc||"", img: v.img||""};
+      clean[k] = {qty: Number(v.qty)||0, desc: v.desc||"", imgs: v.imgs||(v.img?[v.img]:[])};
     });
     sheet.appendRow([new Date(),d.caseType||"Reject",d.capaNo,d.receiveNo,d.jobNo,d.jobName,d.customer,d.supervisor,d.capaOwner||"",d.machine,d.receiveDate||"",d.startDate||"",d.endDate||"",d.capaDueDate||"",d.capaStatus||"ยังไม่ตอบ",s,r,w,g,s?(r/s*100).toFixed(2)+"%":"0%",s?(w/s*100).toFixed(2)+"%":"0%",s?(g/s*100).toFixed(2)+"%":"0%",txt.join(" | "),JSON.stringify(clean),d.custIssue||""]);
     SpreadsheetApp.flush();
@@ -444,6 +465,7 @@ function doGet() {
     const fmt = v => v instanceof Date ? Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd") : String(v||"");
     for (let i = rows.length - 1; i >= 1; i--) {
       const r = rows[i]; let iss = {}; try { iss = r[23] ? JSON.parse(r[23]) : {}; } catch(e){}
+      Object.keys(iss).forEach(k => { if (iss[k].img && !iss[k].imgs) { iss[k].imgs = [iss[k].img]; } });
       out.push({caseType:String(r[1]||"Reject"),capaNo:String(r[2]),receiveNo:String(r[3]),jobNo:String(r[4]),jobName:String(r[5]),customer:String(r[6]),supervisor:String(r[7]),capaOwner:String(r[8]||""),machine:String(r[9]),receiveDate:fmt(r[10]),startDate:fmt(r[11]),endDate:fmt(r[12]),capaDueDate:fmt(r[13]),capaStatus:String(r[14]||"ยังไม่ตอบ"),qtySent:Number(r[15])||0,qtyReject:Number(r[16])||0,qtyWaste:Number(r[17])||0,qtyGood:Number(r[18])||0,issues:iss,custIssue:String(r[24]||"")});
     }
     return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
@@ -456,11 +478,11 @@ const COLS = ["#ef4444","#f97316","#f59e0b","#eab308","#84cc16","#10b981","#06b6
 const ICOL = {}; ISS.forEach((n,i) => ICOL[n] = COLS[i % COLS.length]);
 
 let recs = [
-  {caseType:"Reject",capaNo:"CAPA-2026-001",receiveNo:"R26001",jobNo:"J2601",jobName:"กล่องสบู่",customer:"บริษัทนีโอคอสเมด",supervisor:"คุณสมชาย",capaOwner:"คุณอภิสิทธิ์",machine:"2101",receiveDate:"2026-11-01",startDate:"2026-11-02",endDate:"2026-11-04",capaDueDate:"2026-11-10",capaStatus:"ตอบแล้ว",custIssue:"ลูกค้าแจ้งสีกล่องเข้มผิดเพี้ยนจาก Proof และมีรอยขีดข่วน",qtySent:5000,qtyReject:150,qtyWaste:50,qtyGood:4800,issues:{"สีไม่ได้มาตรฐาน":{qty:100,desc:"สีเข้มกว่ามาตรฐานเล็กน้อย"},"รอยขูดขีด":{qty:50,desc:"พบบริเวณขอบกล่อง"}}},
-  {caseType:"Reject",capaNo:"CAPA-2026-002",receiveNo:"R26002",jobNo:"J2602",jobName:"กล่องอาหารเสริม",customer:"บริษัทบิวตี้แคร์",supervisor:"คุณวิชัย",capaOwner:"คุณกัญจน์",machine:"3131",receiveDate:"2026-11-03",startDate:"2026-11-04",endDate:"",capaDueDate:"2026-11-12",capaStatus:"ยังไม่ตอบ",custIssue:"พิมพ์เหลื่อมไม่ตรงบล็อก และพบคราบกาวเลอะหน้ากล่อง",qtySent:10000,qtyReject:320,qtyWaste:120,qtyGood:9560,issues:{"พิมพ์ไม่ตรง":{qty:200,desc:"เหลื่อม 1 มม."},"กาวเลอะ":{qty:120}}},
-  {caseType:"Complain",capaNo:"CAPA-2026-003",receiveNo:"R26003",jobNo:"J2603",jobName:"กล่องเซรั่ม",customer:"บริษัทโกลด์เด้น",supervisor:"คุณธนพล",capaOwner:"คุณอภิสิทธิ์",machine:"4101",receiveDate:"2026-11-15",startDate:"2026-11-16",endDate:"",capaDueDate:"2026-11-25",capaStatus:"ยังไม่ตอบ",custIssue:"ปั๊มเคทองหลุดตำแหน่งโลโก้ ไม่ตรงจุดที่กำหนด",qtySent:8000,qtyReject:210,qtyWaste:80,qtyGood:7710,issues:{"ปั๊มเคไม่ตรง":{qty:210,desc:"เคทองไม่ตรงตำแหน่งโลโก้"}}}
+  {caseType:"Reject",capaNo:"CAPA-2026-001",receiveNo:"R26001",jobNo:"J2601",jobName:"กล่องสบู่",customer:"บริษัทนีโอคอสเมด",supervisor:"คุณสมชาย",capaOwner:"คุณอภิสิทธิ์",machine:"2101",receiveDate:"2026-11-01",startDate:"2026-11-02",endDate:"2026-11-04",capaDueDate:"2026-11-10",capaStatus:"ตอบแล้ว",custIssue:"ลูกค้าแจ้งสีกล่องเข้มผิดเพี้ยนจาก Proof และมีรอยขีดข่วน",qtySent:5000,qtyReject:150,qtyWaste:50,qtyGood:4800,issues:{"สีไม่ได้มาตรฐาน":{qty:100,desc:"สีเข้มกว่ามาตรฐานเล็กน้อย",imgs:[]},"รอยขูดขีด":{qty:50,desc:"พบบริเวณขอบกล่อง",imgs:[]}}},
+  {caseType:"Reject",capaNo:"CAPA-2026-002",receiveNo:"R26002",jobNo:"J2602",jobName:"กล่องอาหารเสริม",customer:"บริษัทบิวตี้แคร์",supervisor:"คุณวิชัย",capaOwner:"คุณกัญจน์",machine:"3131",receiveDate:"2026-11-03",startDate:"2026-11-04",endDate:"",capaDueDate:"2026-11-12",capaStatus:"ยังไม่ตอบ",custIssue:"พิมพ์เหลื่อมไม่ตรงบล็อก และพบคราบกาวเลอะหน้ากล่อง",qtySent:10000,qtyReject:320,qtyWaste:120,qtyGood:9560,issues:{"พิมพ์ไม่ตรง":{qty:200,desc:"เหลื่อม 1 มม.",imgs:[]},"กาวเลอะ":{qty:120,desc:"",imgs:[]}}},
+  {caseType:"Complain",capaNo:"CAPA-2026-003",receiveNo:"R26003",jobNo:"J2603",jobName:"กล่องเซรั่ม",customer:"บริษัทโกลด์เด้น",supervisor:"คุณธนพล",capaOwner:"คุณอภิสิทธิ์",machine:"4101",receiveDate:"2026-11-15",startDate:"2026-11-16",endDate:"",capaDueDate:"2026-11-25",capaStatus:"ยังไม่ตอบ",custIssue:"ปั๊มเคทองหลุดตำแหน่งโลโก้ ไม่ตรงจุดที่กำหนด",qtySent:8000,qtyReject:210,qtyWaste:80,qtyGood:7710,issues:{"ปั๊มเคไม่ตรง":{qty:210,desc:"เคทองไม่ตรงตำแหน่งโลโก้",imgs:[]}}}
 ];
-let selIss = {}, curIss = "", tImg = "";
+let selIss = {}, curIss = "", currentIssueImages = [];
 
 function applyBg(bgUrl) {
   if(bgUrl) {
@@ -474,9 +496,11 @@ function applyBg(bgUrl) {
 
 window.onload = () => {
   document.getElementById("codeTxt").value = GAS_CODE;
+  const iMacSel = document.getElementById("iMac");
+  const fMacSel = document.getElementById("fMac");
   MACS.forEach(m => {
-    document.getElementById("iMac").innerHTML += `<option value="${m}">${m}</option>`;
-    document.getElementById("fMac").innerHTML += `<option value="${m}">${m}</option>`;
+    iMacSel.innerHTML += `<option value="${m}">${m}</option>`;
+    fMacSel.innerHTML += `<option value="${m}">${m}</option>`;
   });
   mkIss();
   if(localStorage.getItem("wg6_logo")) setLogo(localStorage.getItem("wg6_logo"));
@@ -550,16 +574,34 @@ function viewDetail(index) {
   if(!issEntries.length) {
     issHtml = `<div style="color:#94a3b8;text-align:center;padding:16px;background:#f8fafc;border-radius:8px">ไม่มีรายละเอียดปัญหาที่พบระบุไว้</div>`;
   } else {
-    issHtml = issEntries.map(([name, info]) => `
+    issHtml = issEntries.map(([name, info]) => {
+      let imgsArr = [];
+      if (info.imgs && Array.isArray(info.imgs)) {
+        imgsArr = info.imgs;
+      } else if (info.img) {
+        imgsArr = [info.img];
+      }
+      
+      let imgsHtml = "";
+      if (imgsArr.length > 0) {
+        imgsHtml = `<div style="margin-top:8px"><small style="color:#64748b">📷 รูปภาพตัวอย่าง (${imgsArr.length} รูป - คลิกที่รูปเพื่อดูภาพใหญ่):</small><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">` +
+          imgsArr.map(imgSrc => `<img src="${imgSrc}" style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;cursor:zoom-in;" onclick="window.open('${imgSrc}','_blank')">`).join("") +
+          `</div></div>`;
+      } else {
+        imgsHtml = `<div style="margin-top:4px;font-size:0.75rem;color:#94a3b8">ไม่มีรูปภาพแนบ</div>`;
+      }
+
+      return `
       <div class="det-iss-card">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <strong style="color:#2e1065;font-size:0.9rem">● ${name}</strong>
           <span style="background:#5b21b6;color:#fff;padding:2px 9px;border-radius:99px;font-size:0.78rem;font-weight:600">${Number(info.qty||0).toLocaleString()} ชิ้น</span>
         </div>
         ${info.desc ? `<div style="margin-top:6px;font-size:0.83rem;color:#334155"><strong>รายละเอียด:</strong> ${info.desc}</div>` : ''}
-        ${info.img ? `<div style="margin-top:8px"><small style="color:#64748b">📷 รูปภาพตัวอย่าง (คลิกที่รูปเพื่อดูภาพใหญ่):</small><img src="${info.img}" class="det-iss-img" onclick="window.open('${info.img}','_blank')"></div>` : '<div style="margin-top:4px;font-size:0.75rem;color:#94a3b8">ไม่มีรูปภาพแนบ</div>'}
+        ${imgsHtml}
       </div>
-    `).join("");
+    `;
+    }).join("");
   }
 
   document.getElementById("dBody").innerHTML = `
@@ -597,29 +639,53 @@ function viewDetail(index) {
   openModal("mDetail");
 }
 
-function openOverdueModal() {
-  const tbody = document.getElementById("overdueModalBody");
-  const overdueList = recs.filter(r => getStat(r) === "เลยกำหนด");
-  if(!overdueList.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:30px">ไม่มีรายการที่เลยกำหนด</td></tr>`;
+function openCapaStatusModal(statusFilter) {
+  const tbody = document.getElementById("capaListModalBody");
+  const titleEl = document.getElementById("capaListModalTitle");
+  
+  let filteredList = [];
+  let titleText = "";
+  let colorStyle = "#2e1065";
+  
+  if (statusFilter === 'เลยกำหนด') {
+    filteredList = recs.filter(r => getStat(r) === "เลยกำหนด");
+    titleText = "⚠️ รายการที่ยังไม่ตอบและเลยกำหนด (Overdue)";
+    colorStyle = "#dc2626";
+  } else if (statusFilter === 'อยู่ในกำหนด') {
+    filteredList = recs.filter(r => getStat(r) === "อยู่ในกำหนด");
+    titleText = "⏳ รายการที่ยังไม่ตอบ (อยู่ในกำหนด)";
+    colorStyle = "#d97706";
+  } else if (statusFilter === 'ตอบแล้ว') {
+    filteredList = recs.filter(r => getStat(r) === "ตอบแล้ว");
+    titleText = "✅ รายการที่ตอบแล้ว";
+    colorStyle = "#059669";
+  }
+  
+  titleEl.innerText = titleText;
+  titleEl.style.color = colorStyle;
+
+  if(!filteredList.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:30px">ไม่มีรายการในสถานะนี้</td></tr>`;
   } else {
-    tbody.innerHTML = overdueList.map(r => {
+    tbody.innerHTML = filteredList.map(r => {
       const tp = r.caseType || "Reject";
       const realIdx = recs.indexOf(r);
+      const st = getStat(r);
+      const cls = st === "ตอบแล้ว" ? "done" : (st === "เลยกำหนด" ? "over" : "ok");
       return `
-      <tr class="row-click" onclick="closeModal('mOverdue');viewDetail(${realIdx})">
+      <tr class="row-click" onclick="closeModal('mCapaListModal');viewDetail(${realIdx})">
         <td>
           <strong>${r.capaNo}</strong>
           <div style="margin-top:3px"><span class="tag-type ${tp==='Complain'?'cmp':'rej'}">${tp}</span></div>
         </td>
         <td>${r.jobName || '-'}<br><small style="color:#64748b">${r.customer || '-'}</small></td>
         <td><span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-weight:600">${r.machine}</span><br><small style="color:#475569">👤 ${r.capaOwner||'-'}</small></td>
-        <td><span class="tag-due over">${r.capaDueDate || '-'}</span></td>
-        <td><strong style="color:#dc2626">${Number(r.qtyReject||0).toLocaleString()} ชิ้น</strong></td>
+        <td><span class="tag-due ${cls}">${r.capaDueDate || '-'}</span></td>
+        <td><strong style="color:${colorStyle}">${Number(r.qtyReject||0).toLocaleString()} ชิ้น</strong></td>
       </tr>
     `}).join("");
   }
-  openModal("mOverdue");
+  openModal('mCapaListModal');
 }
 
 function mkIss() {
@@ -632,57 +698,90 @@ function tgIss(i,n) {
   const c = document.getElementById(`ck-${i}`).checked;
   document.getElementById(`ib-${i}`).classList.toggle("sel", c);
   document.getElementById(`bd-${i}`).classList.toggle("hide", !c);
-  if(c){ selIss[n]={qty:0,desc:"",img:""}; edIss(n); } else delete selIss[n];
+  if(c){ selIss[n]={qty:0,desc:"",imgs:[]}; edIss(n); } else delete selIss[n];
 }
 function edIss(n) {
   curIss = n;
   document.getElementById("mIssT").innerText = "รายละเอียดปัญหาที่พบ: " + n;
   document.getElementById("mIQty").value = selIss[n]?.qty || "";
   document.getElementById("mIDesc").value = selIss[n]?.desc || "";
-  tImg = selIss[n]?.img || "";
-  const p = document.getElementById("mIPrev");
-  p.src = tImg; p.style.display = tImg ? "block" : "none";
-  document.getElementById("mIFile").value = "";
+  
+  currentIssueImages = [];
+  if (selIss[n]?.imgs && Array.isArray(selIss[n].imgs)) {
+    currentIssueImages = [...selIss[n].imgs];
+  } else if (selIss[n]?.img) {
+    currentIssueImages = [selIss[n].img];
+  }
+  renderIssImagePreviews();
   openModal("mIss");
 }
 
-function compressAndPrevImg(e) {
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      let width = img.width;
-      let height = img.height;
-      const MAX_WIDTH = 800;
-      const MAX_HEIGHT = 800;
-      if (width > height) {
-        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-      } else {
-        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+function compressAndAddImgs(e) {
+  const files = Array.from(e.target.files);
+  if(!files.length) return;
+  
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        if (width > height) {
+          if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+        } else {
+          if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+        currentIssueImages.push(compressedDataUrl);
+        renderIssImagePreviews();
       }
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      tImg = canvas.toDataURL('image/jpeg', 0.75);
-      const p = document.getElementById("mIPrev");
-      p.src = tImg; p.style.display = "block";
+      img.src = event.target.result;
     }
-    img.src = event.target.result;
+    reader.readAsDataURL(file);
+  });
+  e.target.value = "";
+}
+
+function renderIssImagePreviews() {
+  const container = document.getElementById("mIPrevContainer");
+  container.innerHTML = "";
+  if(!currentIssueImages.length) {
+    container.innerHTML = `<span style="color:#94a3b8;font-size:0.78rem">ยังไม่มีรูปภาพแนบ</span>`;
+    return;
   }
-  reader.readAsDataURL(file);
+  currentIssueImages.forEach((imgSrc, idx) => {
+    const wrap = document.createElement("div");
+    wrap.style.position = "relative";
+    wrap.style.display = "inline-block";
+    wrap.innerHTML = `
+      <img src="${imgSrc}" style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;display:block;">
+      <button type="button" onclick="removeIssImg(${idx})" style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+    `;
+    container.appendChild(wrap);
+  });
+}
+
+function removeIssImg(idx) {
+  currentIssueImages.splice(idx, 1);
+  renderIssImagePreviews();
 }
 
 function okIss() {
   const q = parseInt(document.getElementById("mIQty").value)||0, d = document.getElementById("mIDesc").value;
-  selIss[curIss] = {qty:q, desc:d, img:tImg};
+  selIss[curIss] = {qty:q, desc:d, imgs: [...currentIssueImages]};
   const i = ISS.indexOf(curIss);
   if(i>-1) document.getElementById(`bd-${i}`).innerText = q>0 ? q+" ชิ้น" : "ระบุจำนวน";
   closeModal("mIss");
 }
+
 function calc() {
   const s=parseFloat(document.getElementById("qSent").value)||0, r=parseFloat(document.getElementById("qRej").value)||0, w=parseFloat(document.getElementById("qWst").value)||0, g=parseFloat(document.getElementById("qGd").value)||0;
   document.getElementById("pRej").innerText = s>0 ? (r/s*100).toFixed(2)+"%" : "0.00%";
@@ -693,13 +792,24 @@ function calc() {
 async function saveRec(e) {
   e.preventDefault();
   const editIdx = parseInt(document.getElementById("editIndex").value);
+  
+  // รวบรวมเครื่องจักรที่เลือกจาก multi-select และช่องระบุเอง
+  const selectedMacs = Array.from(document.getElementById("iMac").selectedOptions).map(opt => opt.value);
+  const customMac = document.getElementById("iMacCustom").value.trim();
+  let allMacs = [...selectedMacs];
+  if(customMac) {
+    const customs = customMac.split(',').map(m => m.trim()).filter(Boolean);
+    allMacs = allMacs.concat(customs);
+  }
+  const machineStr = allMacs.join(", ");
+
   const rec = {
     caseType:document.getElementById("iType").value,
     capaNo:document.getElementById("iCapa").value.trim(), receiveNo:document.getElementById("iRecNo").value.trim(),
     jobNo:document.getElementById("iJob").value.trim(), jobName:document.getElementById("iJName").value.trim(),
     customer:document.getElementById("iCus").value.trim(), supervisor:document.getElementById("iSup").value.trim(),
     capaOwner:document.getElementById("iOwner").value.trim(),
-    machine:document.getElementById("iMac").value,
+    machine:machineStr,
     receiveDate:document.getElementById("iRecDate").value,
     startDate:document.getElementById("iStartDate").value,
     endDate:document.getElementById("iEndDate").value,
@@ -745,7 +855,21 @@ function editRecord(index) {
   document.getElementById("iCus").value = r.customer || "";
   document.getElementById("iSup").value = r.supervisor || "";
   document.getElementById("iOwner").value = r.capaOwner || "";
-  document.getElementById("iMac").value = r.machine || "";
+
+  // จัดการแยกเครื่องจักรเข้า select และช่อง custom
+  const macsArr = (r.machine || "").split(',').map(m => m.trim()).filter(Boolean);
+  const macSelect = document.getElementById("iMac");
+  let customList = [];
+  for (let opt of macSelect.options) {
+    opt.selected = macsArr.includes(opt.value);
+  }
+  macsArr.forEach(m => {
+    if (!MACS.includes(m)) {
+      customList.push(m);
+    }
+  });
+  document.getElementById("iMacCustom").value = customList.join(", ");
+
   document.getElementById("iRecDate").value = r.receiveDate || "";
   document.getElementById("iStartDate").value = r.startDate || "";
   document.getElementById("iEndDate").value = r.endDate || "";
@@ -788,7 +912,7 @@ function renderTableList() {
     const tp = r.caseType || "Reject";
     const cls = st === "ตอบแล้ว" ? "done" : (st === "เลยกำหนด" ? "over" : "ok");
     const lbl = st === "ตอบแล้ว" ? "✅ ตอบแล้ว" : (st === "เลยกำหนด" ? "⚠️ ยังไม่ตอบ (เลยกำหนด)" : "⏳ ยังไม่ตอบ (ในกำหนด)");
-    const hasImg = r.issues && Object.values(r.issues).some(v => v.img);
+    const hasImg = r.issues && Object.values(r.issues).some(v => (v.imgs && v.imgs.length > 0) || v.img);
     const issKeys = r.issues ? Object.keys(r.issues) : [];
     return `
       <tr>
@@ -844,7 +968,7 @@ function draw() {
 
   const fl = recs.filter(r => {
     if(ft && (r.caseType||"Reject")!==ft) return false;
-    if(fm && r.machine!==fm) return false;
+    if(fm && !r.machine.includes(fm)) return false;
     if(fc && r.customer!==fc) return false;
     if(fs && r.supervisor!==fs) return false;
     if(fo && r.capaOwner!==fo) return false;
@@ -896,7 +1020,14 @@ function draw() {
   const sIss = Object.entries(isum).sort((a,b)=>b[1]-a[1]);
   bar("cTop", sIss.slice(0,5), true); bar("cAll", sIss, true);
 
-  const msum={}; fl.forEach(r=>msum[r.machine]=(msum[r.machine]||0)+(Number(r.qtyReject)||0));
+  const msum={}; fl.forEach(r=>{ 
+    if(r.machine) {
+      r.machine.split(',').forEach(m => {
+        const mc = m.trim();
+        if(mc) msum[mc]=(msum[mc]||0)+(Number(r.qtyReject)||0);
+      });
+    }
+  });
   bar("cMac", Object.entries(msum).sort((a,b)=>b[1]-a[1]), false, "#5b21b6");
 
   const csum={}; fl.forEach(r=>csum[r.customer]=(csum[r.customer]||0)+(Number(r.qtyReject)||0));
@@ -913,11 +1044,10 @@ function draw() {
       const cls = st === "ตอบแล้ว" ? "done" : (st === "เลยกำหนด" ? "over" : "ok");
       const lbl = st === "ตอบแล้ว" ? "✅ ตอบแล้ว" : (st === "เลยกำหนด" ? "⚠️ เลยกำหนด" : "⏳ อยู่ในกำหนด");
       const issKeys = r.issues ? Object.keys(r.issues) : [];
-      const hasImg = r.issues && Object.values(r.issues).some(v => v.img);
+      const hasImg = r.issues && Object.values(r.issues).some(v => (v.imgs && v.imgs.length > 0) || v.img);
       
       return `
         <tr class="row-click" onclick="viewDetail(${realIdx})">
-          <!-- ช่องที่ 1: CAPA, แยกบรรทัดประเภท, รหัสรับรีเจ็ค + Job บรรทัดเดียวกัน และปัญหาที่ลูกค้ารีเจ็ค -->
           <td>
             <div style="white-space:nowrap"><strong>${r.capaNo}</strong></div>
             <div style="margin-top:3px"><span class="tag-type ${tp==='Complain'?'cmp':'rej'}">${tp}</span></div>
@@ -927,17 +1057,14 @@ function draw() {
             </div>
             ${r.custIssue ? `<div style="margin-top:6px;padding:4px 7px;background:#fff1f2;border-left:3px solid #e11d48;border-radius:4px;font-size:0.75rem;color:#9f1239;line-height:1.4"><strong>📌 ปัญหาลูกค้า:</strong> ${r.custIssue}</div>` : ''}
           </td>
-          <!-- ช่องที่ 2: ชื่องาน และ ลูกค้า -->
           <td>
             <strong>${r.jobName || '-'}</strong><br>
             <small style="color:#64748b">${r.customer || '-'}</small>
           </td>
-          <!-- ช่องที่ 3: เครื่อง และ ผู้รับผิดชอบ CAPA -->
           <td>
             <span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-weight:600">${r.machine}</span>
             <div style="font-size:0.75rem;color:#475569;margin-top:2px;white-space:nowrap">👤 ${r.capaOwner || '-'}</div>
           </td>
-          <!-- ช่องที่ 4: รายละเอียดปัญหาที่พบ -->
           <td style="font-size:0.8rem">
             ${issKeys.length ? `<span style="color:#2e1065;font-weight:600">${issKeys.slice(0,2).join(", ") + (issKeys.length>2 ? ` (+${issKeys.length-2})` : '')}</span>` : '-'}
             ${hasImg ? '<div style="color:#0284c7;font-size:0.74rem;font-weight:600;margin-top:2px">📷 มีรูปภาพแนบ</div>' : ''}
@@ -1016,3 +1143,4 @@ function rstImg(){ localStorage.removeItem("wg6_logo"); localStorage.removeItem(
 </script>
 </body>
 </html>
+```[cite: 1]
