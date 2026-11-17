@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบติดตามและวิเคราะห์ข้อมูล Complain / Reject WG6</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Prompt',sans-serif}
+body{background:#f8fafc;color:#1e293b}
+header{background:linear-gradient(135deg,#ede9fe,#ddd6fe,#fef08a);color:#0f172a;background-size:cover;background-position:center;border-bottom:2px solid #eab308}
+.overlay{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;background:rgba(255,255,255,0.75)}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:56px;height:56px;border:2px solid #eab308;border-radius:14px;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0f172a;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain;display:none}
+h1{font-size:1.35rem;color:#0f172a}h1 span{color:#5b21b6}
+.sub-title{font-size:.82rem;color:#0f172a;font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-size:.78rem;background:rgba(255,255,255,.85);border:1px solid rgba(15,23,42,.25);color:#0f172a;font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;background:#fbbf24}.dot.ok{background:#10b981}.dot.err{background:#ef4444}
+.btn{padding:8px 14px;border-radius:10px;border:none;font-size:.85rem;font-weight:600;cursor:pointer}
+.btn-set{background:rgba(255,255,255,.85);color:#0f172a;border:1px solid #eab308}
+.btn-pri{background:#5b21b6;color:#fff}.btn-pri:hover{background:#2e1065}
+.btn-info{background:#0284c7;color:#fff}.btn-info:hover{background:#0369a1}
+.btn-gold{background:#eab308;color:#1e1b4b}
+.btn-out{background:#fff;border:1px solid #cbd5e1;color:#334155}
+.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
+.btn-sm{padding:5px 10px;font-size:0.78rem;border-radius:6px}
+nav{background:#fff;border-bottom:1px solid #e2e8f0;padding:8px 24px 0;display:flex;gap:8px;overflow-x:auto}
+.tab{padding:10px 20px;border:none;background:none;font-weight:600;color:#64748b;border-radius:10px 10px 0 0;cursor:pointer;white-space:nowrap}
+.tab.active{background:#5b21b6;color:#fff;border-bottom:3px solid #eab308}
+.wrap{max-width:1240px;margin:20px auto;padding:0 16px}
+.hide{display:none!important}
+
+#pSum{
+  position:relative;
+  border-radius:18px;
+  padding:18px;
+  overflow:hidden;
+  background-color:#f5f3ff;
+  background-image:radial-gradient(rgba(91,33,182,0.08) 1px, transparent 1px), linear-gradient(135deg, rgba(237,233,254,0.85), rgba(254,249,195,0.55));
+  background-size:20px 20px, cover;
+  border:1px solid #ddd6fe;
+}
+#pSum::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:var(--sum-bg, none);
+  background-size:cover;
+  background-position:center;
+  opacity:0.22;
+  pointer-events:none;
+  z-index:0;
+}
+#pSum > *{position:relative;z-index:1}
+
+.card{background:rgba(255,255,255,0.94);backdrop-filter:blur(4px);border-radius:14px;padding:18px;border:1px solid #ede9fe;box-shadow:0 2px 8px rgba(46,16,101,.06);margin-bottom:18px}
+.filters{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+select,input,textarea{padding:8px 11px;border:1px solid #cbd5e1;border-radius:9px;font-size:.88rem;outline:none;width:100%}
+.filters select, .filters input{width:auto}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:rgba(255,255,255,0.95);padding:14px;border-radius:12px;border:1px solid #ede9fe;border-left:5px solid #5b21b6;box-shadow:0 2px 6px rgba(0,0,0,.04)}
+.kpi.g{border-left-color:#eab308}.kpi.gr{border-left-color:#10b981}.kpi.am{border-left-color:#f59e0b}
+.kpi.r{border-left-color:#dc2626;background:rgba(254,242,242,0.96)}
+.kpi-clickable{cursor:pointer;transition:transform .1s}
+.kpi-clickable:hover{transform:translateY(-2px)}
+.kpi small{color:#64748b;font-size:.76rem;font-weight:600}
+.kpi div{font-size:1.35rem;font-weight:700;margin-top:2px;color:#2e1065}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;margin-bottom:18px}
+@media(max-width:550px){.charts{grid-template-columns:1fr}}
+.ctitle{font-weight:700;color:#2e1065;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #f1f5f9}
+.brow{margin-bottom:10px}.binfo{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px}
+.btrack{height:12px;background:#f1f5f9;border-radius:6px;overflow:hidden}.bfill{height:100%;border-radius:6px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:16px}
+.fg{display:flex;flex-direction:column;gap:4px}.fg label{font-size:.82rem;font-weight:600}
+.calc{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:12px;padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.pct{background:#fff;border:1px solid #eab308;border-radius:9px;padding:6px 10px;font-size:.8rem;font-weight:600}
+
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:8px;max-height:400px;overflow-y:auto;padding:10px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px}
+.iitem{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.iitem.sel{border-color:#5b21b6;background:#f5f3ff}
+.ilbl{display:flex;align-items:center;gap:7px;font-size:.81rem;cursor:pointer;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ilbl input[type="checkbox"]{width:auto;flex-shrink:0}
+.ilbl span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.bdet{background:#ede9fe;color:#2e1065;border:none;padding:3px 8px;border-radius:6px;font-size:.74rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.65);display:flex;align-items:center;justify-content:center;padding:14px;z-index:999}
+.mbox{background:#fff;border-radius:16px;width:100%;max-width:550px;padding:20px;max-height:90vh;overflow-y:auto;box-shadow:0 10px 25px rgba(0,0,0,0.2)}
+.mhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0;padding-bottom:10px;margin-bottom:14px}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0}
+.cbox{background:#1e1b4b;color:#fff;border-radius:10px;padding:10px;margin:10px 0}
+.cbox textarea{width:100%;height:120px;background:#0f172a;color:#a5f3fc;font-family:monospace;font-size:.75rem;margin-top:6px}
+.cstat{padding:8px 12px;border-radius:8px;background:#f1f5f9;font-size:.8rem;display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.table-responsive{width:100%;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:0.85rem;text-align:left}
+th,td{padding:10px 12px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+th{background:#f8fafc;color:#2e1065;font-weight:700}
+tr:hover{background:#f8fafc}
+.row-click{cursor:pointer}
+.tag-due{display:inline-block;padding:3px 8px;border-radius:6px;font-size:0.75rem;font-weight:600;white-space:nowrap}
+.tag-due.done{background:#d1fae5;color:#059669}
+.tag-due.ok{background:#fef3c7;color:#d97706}
+.tag-due.over{background:#fee2e2;color:#dc2626}
+.tag-type{display:inline-block;padding:2px 7px;border-radius:5px;font-size:0.72rem;font-weight:700;white-space:nowrap}
+.tag-type.rej{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}
+.tag-type.cmp{background:#ffedd5;color:#c2410c;border:1px solid #fed7aa}
+
+.det-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;background:#f8fafc;padding:12px;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:14px;font-size:0.83rem}
+.det-grid div span{color:#64748b;font-size:0.74rem;display:block}
+.det-grid div strong{color:#1e293b;font-size:0.86rem}
+.det-iss-card{border:1px solid #ddd6fe;background:#f5f3ff;border-radius:10px;padding:12px;margin-bottom:10px}
+.det-iss-img{max-width:100%;max-height:240px;border-radius:8px;margin-top:8px;border:1px solid #cbd5e1;cursor:zoom-in;display:block}
+.cust-prob-box{background:#fff1f2;border:1px solid #fecdd3;border-left:4px solid #e11d48;padding:10px 12px;border-radius:8px;margin-bottom:14px;font-size:0.86rem;color:#881337}
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <div class="overlay">
+    <div class="brand">
+      <div class="logo"><img id="cLogo"><span id="dLogo">WG6</span></div>
+      <div>
+        <h1>ระบบติดตามและวิเคราะห์ข้อมูล Complain / Reject <span>WG6</span></h1>
+        <div class="sub-title">เหรียญทองการพิมพ์ (WG6) & KIM PAI</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="badge"><span class="dot" id="hDot"></span><span id="hTxt">โหมดข้อมูลในเครื่อง</span></div>
+      <button type="button" class="btn btn-set" onclick="openModal('mSet')">⚙️ ตั้งค่า</button>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <button type="button" id="tSum" class="tab active" onclick="goTab('sum')">📊 หน้าสรุป</button>
+  <button type="button" id="tRec" class="tab" onclick="goTab('rec')">📝 บันทึกข้อมูล Complain / Reject</button>
+  <button type="button" id="tList" class="tab" onclick="goTab('list')">📋 รายการทั้งหมด</button>
+</nav>
+
+<!-- หน้า 1: สรุป -->
+<div id="pSum" class="wrap">
+  <div class="card filters">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <select id="fType" onchange="draw()">
+        <option value="">ประเภททั้งหมด (Complain / Reject)</option>
+        <option value="Reject">🔴 Reject (สินค้าตีกลับ)</option>
+        <option value="Complain">🟠 Complain (ข้อร้องเรียน)</option>
+      </select>
+      <select id="fMac" onchange="draw()"><option value="">เครื่องจักร/แผนกทั้งหมด</option></select>
+      <select id="fCus" onchange="draw()"><option value="">บริษัทลูกค้าทั้งหมด</option></select>
+      <select id="fSup" onchange="draw()"><option value="">หัวหน้าเครื่องทั้งหมด</option></select>
+      <select id="fOwner" onchange="draw()"><option value="">ผู้รับผิดชอบ CAPA ทั้งหมด</option></select>
+      <select id="fCap" onchange="draw()">
+        <option value="">สถานะ CAPA ทั้งหมด</option>
+        <option value="ตอบแล้ว">✅ ตอบแล้ว</option>
+        <option value="อยู่ในกำหนด">⏳ ยังไม่ตอบ (อยู่ในกำหนด)</option>
+        <option value="เลยกำหนด">⚠️ ยังไม่ตอบ (เลยกำหนด)</option>
+      </select>
+      <div style="display:flex;align-items:center;gap:4px;font-size:0.8rem;background:#fff;padding:4px 8px;border:1px solid #cbd5e1;border-radius:9px">
+        <span>📅 ช่วงวันที่:</span>
+        <input type="date" id="fDateStart" onchange="draw()" style="border:none;padding:2px;font-size:0.8rem;width:120px">
+        <span>ถึง</span>
+        <input type="date" id="fDateEnd" onchange="draw()" style="border:none;padding:2px;font-size:0.8rem;width:120px">
+        <button type="button" class="btn btn-out btn-sm" onclick="clrDateFilter()" style="padding:2px 6px;font-size:0.7rem">ล้างวันที่</button>
+      </div>
+    </div>
+    <button type="button" class="btn btn-pri" onclick="syncData(true)">🔄 รีเฟรชข้อมูล</button>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><small>ยอดรีเจ็ค / ร้องเรียนรวม (ชิ้น)</small><div id="kRej">0</div></div>
+    <div class="kpi g"><small>ของเสียเฉลี่ย (%)</small><div id="kWst">0.00%</div></div>
+    <div class="kpi gr"><small>CAPA : ตอบแล้ว</small><div id="kDone" style="color:#059669">0 เคส</div></div>
+    <div class="kpi am"><small>CAPA : ยังไม่ตอบ (ในกำหนด)</small><div id="kInDue" style="color:#d97706">0 เคส</div></div>
+    <div class="kpi r kpi-clickable" onclick="openOverdueModal()" title="คลิกเพื่อดูรายการที่เลยกำหนด">
+      <small style="color:#b91c1c">⚠️ CAPA : เลยกำหนด (คลิกดูรายการ)</small>
+      <div id="kOver" style="color:#dc2626">0 เคส</div>
+    </div>
+  </div>
+
+  <!-- ส่วนแสดงงานจ็อบที่กำลังทำการคัด -->
+  <div class="card" style="border-left:5px solid #0284c7">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div class="ctitle" style="margin-bottom:0;border:none;padding:0;color:#0284c7">⚙️ จ็อบงานที่กำลังทำการคัด (ยังไม่เสร็จ)</div>
+      <span id="activeSortingCount" class="badge" style="background:#e0f2fe;color:#0369a1;border-color:#bae6fd">0 จ็อบ</span>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>CAPA No. & ประเภท</th>
+            <th>จ็อบงาน / ชื่องาน</th>
+            <th>ลูกค้า / เครื่องจักร</th>
+            <th>จำนวนผลิต (ชิ้น)</th>
+            <th>จำนวนรับรีเจ็ค</th>
+            <th>สถานะการคัด</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="activeSortingTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="card"><div class="ctitle">🔥 ปัญหาที่พบมากที่สุด (Top Issues)</div><div id="cTop"></div></div>
+    <div class="card"><div class="ctitle">📊 สรุปปัญหาทั้งหมดที่พบ</div><div id="cAll"></div></div>
+    <div class="card"><div class="ctitle">⚙️ ยอดแยกตามเครื่องจักร / แผนก</div><div id="cMac"></div></div>
+    <div class="card"><div class="ctitle">🏢 ยอดแยกตามบริษัทลูกค้า</div><div id="cCus"></div></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="ctitle" style="margin-bottom:0;border:none;padding:0">📋 รายการ Complain / Reject (คลิกที่รายการเพื่อดูรายละเอียดและรูปภาพ)</div>
+      <button type="button" class="btn btn-out btn-sm" onclick="goTab('list')">ดูหน้าจัดการทั้งหมด ➔</button>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th style="min-width:240px">CAPA, ประเภท & ปัญหาลูกค้า</th>
+            <th>ชื่องาน / ลูกค้า</th>
+            <th>เครื่อง / ผู้รับผิดชอบ CAPA</th>
+            <th>รายละเอียดปัญหาที่พบ / รูปภาพ</th>
+            <th>สถานะ CAPA</th>
+            <th>จำนวน</th>
+            <th>ดูข้อมูล</th>
+          </tr>
+        </thead>
+        <tbody id="sumTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- หน้า 2: บันทึก / แก้ไข -->
+<div id="pRec" class="wrap hide">
+  <div class="card">
+    <h2 id="formTitle" style="color:#2e1065;margin-bottom:14px;font-size:1.15rem">ฟอร์มบันทึกข้อมูล Complain / Reject WG6</h2>
+    <form id="rForm" onsubmit="saveRec(event)">
+      <input type="hidden" id="editIndex" value="-1">
+      <div class="fgrid">
+        <div class="fg"><label>ประเภทเคส (Complain / Reject) *</label>
+          <select id="iType" required>
+            <option value="Reject">🔴 Reject (สินค้าตีกลับ)</option>
+            <option value="Complain">🟠 Complain (ข้อร้องเรียน)</option>
+          </select>
+        </div>
+        <div class="fg"><label>หมายเลข CAPA *</label><input type="text" id="iCapa" required placeholder="CAPA-2026-001"></div>
+        <div class="fg"><label>หมายเลขรับรีเจ็ค (NO. REJ) *</label><input type="text" id="iRecNo" required placeholder="R26001"></div>
+        <div class="fg"><label>จ็อบงาน (Job No.) *</label><input type="text" id="iJob" required placeholder="J260501"></div>
+        <div class="fg"><label>ชื่องาน *</label><input type="text" id="iJName" required></div>
+        <div class="fg"><label>ชื่อบริษัทลูกค้า *</label><input type="text" id="iCus" required></div>
+        <div class="fg"><label>หัวหน้าเครื่อง *</label><input type="text" id="iSup" required></div>
+        <div class="fg"><label>ผู้รับผิดชอบ CAPA (CAPA Owner) *</label><input type="text" id="iOwner" required placeholder="ระบุชื่อผู้รับผิดชอบทำ CAPA"></div>
+        <div class="fg"><label>หมายเลขเครื่องจักร / แผนก *</label><select id="iMac" required><option value="">-- เลือกเครื่องจักร/แผนก --</option></select></div>
+        <div class="fg"><label>วันที่รับเข้ารีเจ็ค / ร้องเรียน *</label><input type="date" id="iRecDate" required></div>
+        <div class="fg"><label>วันที่เริ่มคัด</label><input type="date" id="iStartDate" onchange="chkSortingStatus()"></div>
+        <div class="fg"><label>วันที่คัดเสร็จ</label><input type="date" id="iEndDate" onchange="chkSortingStatus()"></div>
+        <div class="fg"><label>วันที่กำหนดส่ง (CAPA Due Date) *</label>
+          <input type="date" id="iDue" required onchange="chkDue()">
+        </div>
+        <div class="fg"><label>สถานะการตอบ CAPA *</label>
+          <select id="iCapStat" required onchange="chkDue()">
+            <option value="ยังไม่ตอบ">⏳ ยังไม่ตอบ</option>
+            <option value="ตอบแล้ว">✅ ตอบแล้ว</option>
+          </select>
+          <small id="dueHint" style="font-weight:600"></small>
+        </div>
+      </div>
+
+      <!-- หัวข้อ: ปัญหาที่ลูกค้ารีเจ็ค -->
+      <div class="fg" style="margin-bottom:16px">
+        <label style="color:#b91c1c;font-size:0.9rem">📌 ปัญหาที่ลูกค้ารีเจ็ค / Complain *</label>
+        <textarea id="iCustIssue" rows="2" required placeholder="ระบุรายละเอียดปัญหาที่ลูกค้าแจ้งรีเจ็ค หรือข้อร้องเรียนจากลูกค้า..."></textarea>
+      </div>
+
+      <div class="calc">
+        <div class="fg"><label>จำนวนที่ส่ง (ชิ้น) *</label><input type="number" id="qSent" min="1" required oninput="calc()"></div>
+        <div class="fg"><label>จำนวนที่รีเจ็ค / ร้องเรียน (ชิ้น) *</label><input type="number" id="qRej" min="0" required oninput="calc()"></div>
+        <div class="fg"><label>จำนวนของเสีย (ชิ้น) *</label><input type="number" id="qWst" min="0" required oninput="calc()"></div>
+        <div class="fg"><label>จำนวนของดีที่คัดได้ (ชิ้น) *</label><input type="number" id="qGd" min="0" required oninput="calc()"></div>
+        <div class="fg"><label>คำนวณเปอร์เซ็นต์</label>
+          <div class="pct">
+            <div>รีเจ็ค: <span id="pRej" style="color:#5b21b6">0.00%</span></div>
+            <div>เสีย: <span id="pWst" style="color:#e11d48">0.00%</span> | ดี: <span id="pGd" style="color:#059669">0.00%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ส่วนรายละเอียดปัญหาที่พบ -->
+      <div class="fg" style="margin-bottom:16px">
+        <label style="color:#2e1065;font-size:0.9rem">🔍 รายละเอียดปัญหาที่พบ (คลิกเลือกหัวข้อเพื่อระบุจำนวน รายละเอียด และแนบรูปภาพอัตโนมัติ)</label>
+        <div id="iBox" class="igrid"></div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button type="button" class="btn btn-out" onclick="clrForm()">ล้างข้อมูล / ยกเลิก</button>
+        <button type="submit" id="btnSubmit" class="btn btn-pri">💾 บันทึกข้อมูล</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- หน้า 3: รายการที่บันทึกทั้งหมด -->
+<div id="pList" class="wrap hide">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h2 style="color:#2e1065;font-size:1.15rem">📋 รายการข้อมูล Complain / Reject ทั้งหมด</h2>
+      <button type="button" class="btn btn-pri" onclick="goTab('rec')">➕ บันทึกเคสใหม่</button>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>CAPA No. & ประเภท</th>
+            <th>ชื่องาน / ลูกค้า & ปัญหาลูกค้า</th>
+            <th>เครื่อง / ผู้รับผิดชอบ</th>
+            <th>วันที่รับเข้า / คัดงาน</th>
+            <th>Due Date & สถานะ CAPA</th>
+            <th>ส่ง / รีเจ็ค</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="listTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal แสดงรายละเอียดทั้งหมดและรูปภาพของรายการ -->
+<div id="mDetail" class="modal hide">
+  <div class="mbox" style="max-width:680px">
+    <div class="mhead">
+      <h3 id="dTitle" style="color:#2e1065">📄 รายละเอียดข้อมูล</h3>
+      <button type="button" class="btn btn-out" style="padding:4px 10px" onclick="closeModal('mDetail')">✕</button>
+    </div>
+    <div id="dBody"></div>
+    <div class="mfoot">
+      <button type="button" id="dEditBtn" class="btn btn-pri">✏️ แก้ไขรายการนี้</button>
+      <button type="button" class="btn btn-out" onclick="closeModal('mDetail')">ปิดหน้าต่าง</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal แสดงรายการที่เลยกำหนด -->
+<div id="mOverdue" class="modal hide">
+  <div class="mbox" style="max-width:750px">
+    <div class="mhead">
+      <h3 style="color:#dc2626">⚠️ รายการที่ยังไม่ตอบและเลยกำหนด (Overdue)</h3>
+      <button type="button" class="btn btn-out" style="padding:4px 10px" onclick="closeModal('mOverdue')">✕</button>
+    </div>
+    <div class="table-responsive" style="max-height:60vh;overflow-y:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>CAPA / ประเภท</th>
+            <th>ชื่องาน / ลูกค้า</th>
+            <th>เครื่อง / ผู้รับผิดชอบ</th>
+            <th>Due Date</th>
+            <th>จำนวน</th>
+          </tr>
+        </thead>
+        <tbody id="overdueModalBody"></tbody>
+      </table>
+    </div>
+    <div class="mfoot">
+      <button type="button" class="btn btn-pri" onclick="closeModal('mOverdue')">ปิดหน้าต่าง</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ตั้งค่า -->
+<div id="mSet" class="modal hide">
+  <div class="mbox">
+    <div class="mhead"><h3 style="color:#2e1065">⚙️ ตั้งค่า & Apps Script</h3><button type="button" class="btn btn-out" style="padding:4px 10px" onclick="closeModal('mSet')">✕</button></div>
+    <div class="fg">
+      <label>Google Apps Script Web App URL</label>
+      <input type="text" id="sUrl" placeholder="https://script.google.com/macros/s/.../exec">
+      <div class="cstat">
+        <span id="mStat">⚪ สถานะ: ยังไม่ได้เชื่อมต่อ URL</span>
+        <button type="button" class="btn btn-out" style="padding:4px 10px;font-size:.75rem" onclick="testConn()">ทดสอบการเชื่อมต่อ</button>
+      </div>
+    </div>
+    <div class="cbox">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:#fef08a">
+        <span>📜 โค้ด Google Apps Script</span>
+        <button type="button" class="btn btn-gold" style="padding:3px 9px;font-size:.74rem" onclick="copyCode()">📋 คัดลอก</button>
+      </div>
+      <textarea id="codeTxt" readonly></textarea>
+    </div>
+    <div class="fg" style="margin-bottom:10px"><label>เปลี่ยนภาพโลโก้บริษัท</label><input type="file" accept="image/*" onchange="upImg(event,'logo')"></div>
+    <div class="fg"><label>เปลี่ยนภาพพื้นหลังหัวข้อ (และลวดลายหน้าสรุป)</label><input type="file" accept="image/*" onchange="upImg(event,'bg')"></div>
+    <div class="mfoot">
+      <button type="button" class="btn btn-out" onclick="rstImg()">รีเซ็ตภาพ</button>
+      <button type="button" class="btn btn-pri" onclick="saveSet()">บันทึกการตั้งค่า</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal รายละเอียดปัญหา -->
+<div id="mIss" class="modal hide">
+  <div class="mbox" style="max-width:420px">
+    <div class="mhead"><h3 id="mIssT" style="color:#2e1065;font-size:1rem">รายละเอียดปัญหาที่พบ</h3><button type="button" class="btn btn-out" style="padding:4px 10px" onclick="closeModal('mIss')">✕</button></div>
+    <div class="fg" style="margin-bottom:10px"><label>จำนวนที่พบ (ชิ้น)</label><input type="number" id="mIQty" min="0"></div>
+    <div class="fg" style="margin-bottom:10px"><label>รายละเอียดปัญหาเพิ่มเติม</label><textarea id="mIDesc" rows="3"></textarea></div>
+    <div class="fg"><label>แนบรูปภาพตัวอย่าง (บีบอัดอัตโนมัติ)</label><input type="file" id="mIFile" accept="image/*" onchange="compressAndPrevImg(event)"><img id="mIPrev" style="max-height:110px;margin-top:6px;border-radius:8px;display:none"></div>
+    <div class="mfoot">
+      <button type="button" class="btn btn-out" onclick="closeModal('mIss')">ยกเลิก</button>
+      <button type="button" class="btn btn-pri" onclick="okIss()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GAS_CODE = `const SHEET_NAME = "Reject_Data_WG6";
+function doPost(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) {
+      sheet = ss.insertSheet(SHEET_NAME);
+      sheet.appendRow(["วันที่บันทึก","ประเภท (Complain/Reject)","หมายเลข CAPA","หมายเลขรับรีเจ็ค","จ็อบงาน","ชื่องาน","บริษัทลูกค้า","หัวหน้าเครื่อง","ผู้รับผิดชอบ CAPA","เครื่องจักร/แผนก","วันที่รับเข้ารีเจ็ค","วันที่เริ่มคัด","วันที่คัดเสร็จ","CAPA Due Date","สถานะ CAPA","จำนวนส่ง","จำนวนรีเจ็ค","จำนวนของเสีย","ของดีที่คัดได้","% รีเจ็ค","% ของเสีย","% ของดี","สรุปปัญหาที่พบ","JSON ปัญหาที่พบ","ปัญหาที่ลูกค้ารีเจ็ค"]);
+      sheet.getRange(1,1,1,25).setFontWeight("bold").setBackground("#ede9fe");
+    }
+    const d = JSON.parse(e.postData.contents);
+    const s = Number(d.qtySent)||0, r = Number(d.qtyReject)||0, w = Number(d.qtyWaste)||0, g = Number(d.qtyGood)||0;
+    let txt = [], clean = {};
+    if (d.issues) Object.entries(d.issues).forEach(([k,v]) => {
+      txt.push(k+": "+(v.qty||0)+" ชิ้น"+(v.desc?" ("+v.desc+")":""));
+      clean[k] = {qty: Number(v.qty)||0, desc: v.desc||"", img: v.img||""};
+    });
+    sheet.appendRow([new Date(),d.caseType||"Reject",d.capaNo,d.receiveNo,d.jobNo,d.jobName,d.customer,d.supervisor,d.capaOwner||"",d.machine,d.receiveDate||"",d.startDate||"",d.endDate||"",d.capaDueDate||"",d.capaStatus||"ยังไม่ตอบ",s,r,w,g,s?(r/s*100).toFixed(2)+"%":"0%",s?(w/s*100).toFixed(2)+"%":"0%",s?(g/s*100).toFixed(2)+"%":"0%",txt.join(" | "),JSON.stringify(clean),d.custIssue||""]);
+    SpreadsheetApp.flush();
+    return ContentService.createTextOutput(JSON.stringify({status:"success"})).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) { return ContentService.createTextOutput(JSON.stringify({status:"error",message:err.toString()})).setMimeType(ContentService.MimeType.JSON); }
+}
+function doGet() {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    if (!sheet) return ContentService.createTextOutput("[]").setMimeType(ContentService.MimeType.JSON);
+    const rows = sheet.getDataRange().getValues(), out = [];
+    const fmt = v => v instanceof Date ? Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd") : String(v||"");
+    for (let i = rows.length - 1; i >= 1; i--) {
+      const r = rows[i]; let iss = {}; try { iss = r[23] ? JSON.parse(r[23]) : {}; } catch(e){}
+      out.push({caseType:String(r[1]||"Reject"),capaNo:String(r[2]),receiveNo:String(r[3]),jobNo:String(r[4]),jobName:String(r[5]),customer:String(r[6]),supervisor:String(r[7]),capaOwner:String(r[8]||""),machine:String(r[9]),receiveDate:fmt(r[10]),startDate:fmt(r[11]),endDate:fmt(r[12]),capaDueDate:fmt(r[13]),capaStatus:String(r[14]||"ยังไม่ตอบ"),qtySent:Number(r[15])||0,qtyReject:Number(r[16])||0,qtyWaste:Number(r[17])||0,qtyGood:Number(r[18])||0,issues:iss,custIssue:String(r[24]||"")});
+    }
+    return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) { return ContentService.createTextOutput("[]").setMimeType(ContentService.MimeType.JSON); }
+}`;
+
+const MACS = ["2101","2103","2104","2105","2106","2107","3131","3132","3165","3161","3166","5104","5105","5106","4101","4102","4103","4104","4105","4106","4107","4108","6101","6103","6104","6106","6107","6108","6109","6110","คลังสินค้า","ประกันคุณภาพ","วางแผนการผลิต","พัฒนาผลิตภัณฑ์"];
+const ISS = ["สีไม่ได้มาตรฐาน","พิมพ์ไม่ตรง","สีเลอะ","รอยขูดขีด","รอยชักกระดาษ","รอยกดทับ","จุดขาว","จุดสี","ขี้หมึก","ขี้กระดาษ","รอยผ้ายาง","โค๊ทไม่ได้มาตรฐาน","โค๊ทไม่เงา","ค่าความเงาไม่ได้มาตรฐาน","เว้นUVไม่ตรงตำแหน่ง","UVไม่ตรง","UVเป็นรอย","silk screenไม่ตรงตำแหน่ง","silk screenไม่ตรง","silk screen เป็นรอย","เส้นพับแตก","ปั๊มไม่ขาด","ปั๊มไม่ตรง","ปั๊มกล่องเกย","ปั๊มกล่องห่าง","ปั๊มกล่องเอียง","กล่องเป็นรอย","กล่องขาด","ปั๊มนูนไม่ตรงตำแหน่ง","ปั๊มนูนไม่ได้มาตรฐาน","ปั๊มนูนไม่ตรง","ปั๊มเคไม่ตรงตำแหน่ง","ปั๊มเคไม่ตรง","ปั๊มเคไม่ได้มาตรฐาน","กาวล่อน","กาวติด","กาวเลอะ","กล่องไม่มีกาว","ติดกล่องเกย","ติดกล่องห่าง","ติดกล่องเหลื่อม","รูปแบบงานไม่ถูกต้อง","งานขาดจำนวนในลัง","ลังยุบจากการขนส่ง","ไม่ปฏิบัติตามเงื่อนไขลูกค้า"];
+const COLS = ["#ef4444","#f97316","#f59e0b","#eab308","#84cc16","#10b981","#06b6d4","#3b82f6","#6366f1","#8b5cf6","#a855f7","#d946ef","#ec4899","#f43f5e","#dc2626","#ea580c","#d97706","#ca8a04","#65a30d","#059669","#0891b2","#2563eb","#4f46e5","#7c3aed","#9333ea","#c026d3","#db2777","#e11d48","#991b1b","#9a3412","#92400e","#854d0e","#3f6212","#065f46","#155e75","#1e40af","#3730a3","#5b21b6","#6b21a8","#86198f","#475569","#be123c","#0f766e","#1d4ed8","#b45309"];
+const ICOL = {}; ISS.forEach((n,i) => ICOL[n] = COLS[i % COLS.length]);
+
+let recs = [
+  {caseType:"Reject",capaNo:"CAPA-2026-001",receiveNo:"R26001",jobNo:"J2601",jobName:"กล่องสบู่",customer:"บริษัทนีโอคอสเมด",supervisor:"คุณสมชาย",capaOwner:"คุณอภิสิทธิ์",machine:"2101",receiveDate:"2026-11-01",startDate:"2026-11-02",endDate:"2026-11-04",capaDueDate:"2026-11-10",capaStatus:"ตอบแล้ว",custIssue:"ลูกค้าแจ้งสีกล่องเข้มผิดเพี้ยนจาก Proof และมีรอยขีดข่วน",qtySent:5000,qtyReject:150,qtyWaste:50,qtyGood:4800,issues:{"สีไม่ได้มาตรฐาน":{qty:100,desc:"สีเข้มกว่ามาตรฐานเล็กน้อย"},"รอยขูดขีด":{qty:50,desc:"พบบริเวณขอบกล่อง"}}},
+  {caseType:"Reject",capaNo:"CAPA-2026-002",receiveNo:"R26002",jobNo:"J2602",jobName:"กล่องอาหารเสริม",customer:"บริษัทบิวตี้แคร์",supervisor:"คุณวิชัย",capaOwner:"คุณกัญจน์",machine:"3131",receiveDate:"2026-11-03",startDate:"2026-11-04",endDate:"",capaDueDate:"2026-11-12",capaStatus:"ยังไม่ตอบ",custIssue:"พิมพ์เหลื่อมไม่ตรงบล็อก และพบคราบกาวเลอะหน้ากล่อง",qtySent:10000,qtyReject:320,qtyWaste:120,qtyGood:9560,issues:{"พิมพ์ไม่ตรง":{qty:200,desc:"เหลื่อม 1 มม."},"กาวเลอะ":{qty:120}}},
+  {caseType:"Complain",capaNo:"CAPA-2026-003",receiveNo:"R26003",jobNo:"J2603",jobName:"กล่องเซรั่ม",customer:"บริษัทโกลด์เด้น",supervisor:"คุณธนพล",capaOwner:"คุณอภิสิทธิ์",machine:"4101",receiveDate:"2026-11-15",startDate:"2026-11-16",endDate:"",capaDueDate:"2026-11-25",capaStatus:"ยังไม่ตอบ",custIssue:"ปั๊มเคทองหลุดตำแหน่งโลโก้ ไม่ตรงจุดที่กำหนด",qtySent:8000,qtyReject:210,qtyWaste:80,qtyGood:7710,issues:{"ปั๊มเคไม่ตรง":{qty:210,desc:"เคทองไม่ตรงตำแหน่งโลโก้"}}}
+];
+let selIss = {}, curIss = "", tImg = "";
+
+function applyBg(bgUrl) {
+  if(bgUrl) {
+    document.getElementById("hdr").style.backgroundImage = `url('${bgUrl}')`;
+    document.getElementById("pSum").style.setProperty("--sum-bg", `url('${bgUrl}')`);
+  } else {
+    document.getElementById("hdr").style.backgroundImage = "";
+    document.getElementById("pSum").style.removeProperty("--sum-bg");
+  }
+}
+
+window.onload = () => {
+  document.getElementById("codeTxt").value = GAS_CODE;
+  MACS.forEach(m => {
+    document.getElementById("iMac").innerHTML += `<option value="${m}">${m}</option>`;
+    document.getElementById("fMac").innerHTML += `<option value="${m}">${m}</option>`;
+  });
+  mkIss();
+  if(localStorage.getItem("wg6_logo")) setLogo(localStorage.getItem("wg6_logo"));
+  if(localStorage.getItem("wg6_bg")) applyBg(localStorage.getItem("wg6_bg"));
+  const u = localStorage.getItem("wg6_url");
+  if(u){ document.getElementById("sUrl").value = u; syncData(false); } else { updConn("local"); draw(); }
+};
+
+function getStat(r) {
+  if(r.capaStatus === "ตอบแล้ว") return "ตอบแล้ว";
+  if(r.capaDueDate) {
+    const now = new Date(); now.setHours(0,0,0,0);
+    const due = new Date(r.capaDueDate); due.setHours(0,0,0,0);
+    if(!isNaN(due) && now > due) return "เลยกำหนด";
+  }
+  return "อยู่ในกำหนด";
+}
+
+function isSortingActive(r) {
+  if (!r.startDate) return false;
+  if (!r.endDate) return true;
+  const now = new Date(); now.setHours(0,0,0,0);
+  const end = new Date(r.endDate); end.setHours(0,0,0,0);
+  return end >= now;
+}
+
+function chkSortingStatus() {}
+
+function chkDue() {
+  const du = document.getElementById("iDue").value;
+  const st = document.getElementById("iCapStat").value;
+  const h = document.getElementById("dueHint");
+  const eff = getStat({capaDueDate:du, capaStatus:st});
+  if(eff==="ตอบแล้ว"){ h.innerText="✅ สถานะ: ตอบแล้ว (ปิดเคส)"; h.style.color="#059669"; }
+  else if(eff==="เลยกำหนด"){ h.innerText="⚠️ สถานะ: ยังไม่ตอบ (เลยกำหนด)"; h.style.color="#dc2626"; }
+  else { h.innerText="⏳ สถานะ: ยังไม่ตอบ (อยู่ในกำหนด)"; h.style.color="#d97706"; }
+}
+
+function goTab(t) {
+  document.getElementById("pSum").classList.toggle("hide", t!=="sum");
+  document.getElementById("pRec").classList.toggle("hide", t!=="rec");
+  document.getElementById("pList").classList.toggle("hide", t!=="list");
+  document.getElementById("tSum").classList.toggle("active", t==="sum");
+  document.getElementById("tRec").classList.toggle("active", t==="rec");
+  document.getElementById("tList").classList.toggle("active", t==="list");
+  if(t==="sum") draw();
+  if(t==="list") renderTableList();
+}
+
+function openModal(id) { document.getElementById(id).classList.remove("hide"); }
+function closeModal(id) { document.getElementById(id).classList.add("hide"); }
+function clrDateFilter() {
+  document.getElementById("fDateStart").value = "";
+  document.getElementById("fDateEnd").value = "";
+  draw();
+}
+
+function viewDetail(index) {
+  const r = recs[index];
+  if(!r) return;
+  const st = getStat(r);
+  const tp = r.caseType || "Reject";
+  const cls = st === "ตอบแล้ว" ? "done" : (st === "เลยกำหนด" ? "over" : "ok");
+  const lbl = st === "ตอบแล้ว" ? "✅ ตอบแล้ว" : (st === "เลยกำหนด" ? "⚠️ ยังไม่ตอบ (เลยกำหนด)" : "⏳ ยังไม่ตอบ (ในกำหนด)");
+  const s = Number(r.qtySent)||0, rej = Number(r.qtyReject)||0, wst = Number(r.qtyWaste)||0, gd = Number(r.qtyGood)||0;
+
+  document.getElementById("dTitle").innerHTML = `📄 รายละเอียดเคส: <span style="color:#5b21b6">${r.capaNo}</span> <span class="tag-type ${tp==='Complain'?'cmp':'rej'}">${tp}</span>`;
+
+  let issHtml = "";
+  const issEntries = r.issues ? Object.entries(r.issues) : [];
+  if(!issEntries.length) {
+    issHtml = `<div style="color:#94a3b8;text-align:center;padding:16px;background:#f8fafc;border-radius:8px">ไม่มีรายละเอียดปัญหาที่พบระบุไว้</div>`;
+  } else {
+    issHtml = issEntries.map(([name, info]) => `
+      <div class="det-iss-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong style="color:#2e1065;font-size:0.9rem">● ${name}</strong>
+          <span style="background:#5b21b6;color:#fff;padding:2px 9px;border-radius:99px;font-size:0.78rem;font-weight:600">${Number(info.qty||0).toLocaleString()} ชิ้น</span>
+        </div>
+        ${info.desc ? `<div style="margin-top:6px;font-size:0.83rem;color:#334155"><strong>รายละเอียด:</strong> ${info.desc}</div>` : ''}
+        ${info.img ? `<div style="margin-top:8px"><small style="color:#64748b">📷 รูปภาพตัวอย่าง (คลิกที่รูปเพื่อดูภาพใหญ่):</small><img src="${info.img}" class="det-iss-img" onclick="window.open('${info.img}','_blank')"></div>` : '<div style="margin-top:4px;font-size:0.75rem;color:#94a3b8">ไม่มีรูปภาพแนบ</div>'}
+      </div>
+    `).join("");
+  }
+
+  document.getElementById("dBody").innerHTML = `
+    <div class="cust-prob-box">
+      <div style="font-weight:700;margin-bottom:4px;color:#be123c">📌 ปัญหาที่ลูกค้ารีเจ็ค / Complain:</div>
+      <div>${r.custIssue || '<span style="color:#94a3b8">- ไม่ได้ระบุ -</span>'}</div>
+    </div>
+
+    <div class="det-grid">
+      <div><span>หมายเลขรับรีเจ็ค (NO. REJ)</span><strong>${r.receiveNo || '-'}</strong></div>
+      <div><span>จ็อบงาน (Job No.)</span><strong>${r.jobNo || '-'}</strong></div>
+      <div><span>ชื่องาน</span><strong>${r.jobName || '-'}</strong></div>
+      <div><span>บริษัทลูกค้า</span><strong>${r.customer || '-'}</strong></div>
+      <div><span>หัวหน้าเครื่อง</span><strong>${r.supervisor || '-'}</strong></div>
+      <div><span>ผู้รับผิดชอบ CAPA</span><strong style="color:#5b21b6">${r.capaOwner || '-'}</strong></div>
+      <div><span>เครื่องจักร / แผนก</span><strong>${r.machine || '-'}</strong></div>
+      <div><span>วันที่รับเข้ารีเจ็ค</span><strong>${r.receiveDate || '-'}</strong></div>
+      <div><span>วันที่เริ่มคัด - คัดเสร็จ</span><strong>${r.startDate || '-'} ถึง ${r.endDate || 'ยังไม่เสร็จ'}</strong></div>
+      <div><span>CAPA Due Date</span><strong>${r.capaDueDate || '-'}</strong></div>
+      <div><span>สถานะ CAPA</span><span class="tag-due ${cls}">${lbl}</span></div>
+    </div>
+
+    <div class="det-grid" style="background:#f5f3ff;border-color:#ddd6fe">
+      <div><span>จำนวนที่ส่ง</span><strong>${s.toLocaleString()} ชิ้น</strong></div>
+      <div><span>จำนวนที่รีเจ็ค/ร้องเรียน</span><strong style="color:#5b21b6">${rej.toLocaleString()} ชิ้น (${s>0?(rej/s*100).toFixed(2):'0.00'}%)</strong></div>
+      <div><span>จำนวนของเสีย</span><strong style="color:#dc2626">${wst.toLocaleString()} ชิ้น (${s>0?(wst/s*100).toFixed(2):'0.00'}%)</strong></div>
+      <div><span>ของดีที่คัดได้</span><strong style="color:#059669">${gd.toLocaleString()} ชิ้น (${s>0?(gd/s*100).toFixed(2):'0.00'}%)</strong></div>
+    </div>
+
+    <h4 style="color:#2e1065;margin-bottom:8px;font-size:0.95rem">🔍 รายละเอียดปัญหาที่พบและรูปภาพประกอบ (${issEntries.length} รายการ)</h4>
+    ${issHtml}
+  `;
+
+  document.getElementById("dEditBtn").onclick = () => { closeModal("mDetail"); editRecord(index); };
+  openModal("mDetail");
+}
+
+function openOverdueModal() {
+  const tbody = document.getElementById("overdueModalBody");
+  const overdueList = recs.filter(r => getStat(r) === "เลยกำหนด");
+  if(!overdueList.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:30px">ไม่มีรายการที่เลยกำหนด</td></tr>`;
+  } else {
+    tbody.innerHTML = overdueList.map(r => {
+      const tp = r.caseType || "Reject";
+      const realIdx = recs.indexOf(r);
+      return `
+      <tr class="row-click" onclick="closeModal('mOverdue');viewDetail(${realIdx})">
+        <td>
+          <strong>${r.capaNo}</strong>
+          <div style="margin-top:3px"><span class="tag-type ${tp==='Complain'?'cmp':'rej'}">${tp}</span></div>
+        </td>
+        <td>${r.jobName || '-'}<br><small style="color:#64748b">${r.customer || '-'}</small></td>
+        <td><span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-weight:600">${r.machine}</span><br><small style="color:#475569">👤 ${r.capaOwner||'-'}</small></td>
+        <td><span class="tag-due over">${r.capaDueDate || '-'}</span></td>
+        <td><strong style="color:#dc2626">${Number(r.qtyReject||0).toLocaleString()} ชิ้น</strong></td>
+      </tr>
+    `}).join("");
+  }
+  openModal("mOverdue");
+}
+
+function mkIss() {
+  const b = document.getElementById("iBox"); b.innerHTML = "";
+  ISS.forEach((n,i) => {
+    b.innerHTML += `<div class="iitem" id="ib-${i}"><label class="ilbl" title="${n}"><input type="checkbox" id="ck-${i}" onchange="tgIss(${i},'${n}')"><span class="cdot" style="background:${ICOL[n]}"></span><span>${n}</span></label><button type="button" id="bd-${i}" class="bdet hide" onclick="edIss('${n}')">ระบุจำนวน</button></div>`;
+  });
+}
+function tgIss(i,n) {
+  const c = document.getElementById(`ck-${i}`).checked;
+  document.getElementById(`ib-${i}`).classList.toggle("sel", c);
+  document.getElementById(`bd-${i}`).classList.toggle("hide", !c);
+  if(c){ selIss[n]={qty:0,desc:"",img:""}; edIss(n); } else delete selIss[n];
+}
+function edIss(n) {
+  curIss = n;
+  document.getElementById("mIssT").innerText = "รายละเอียดปัญหาที่พบ: " + n;
+  document.getElementById("mIQty").value = selIss[n]?.qty || "";
+  document.getElementById("mIDesc").value = selIss[n]?.desc || "";
+  tImg = selIss[n]?.img || "";
+  const p = document.getElementById("mIPrev");
+  p.src = tImg; p.style.display = tImg ? "block" : "none";
+  document.getElementById("mIFile").value = "";
+  openModal("mIss");
+}
+
+function compressAndPrevImg(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      const MAX_WIDTH = 800;
+      const MAX_HEIGHT = 800;
+      if (width > height) {
+        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+      } else {
+        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      tImg = canvas.toDataURL('image/jpeg', 0.75);
+      const p = document.getElementById("mIPrev");
+      p.src = tImg; p.style.display = "block";
+    }
+    img.src = event.target.result;
+  }
+  reader.readAsDataURL(file);
+}
+
+function okIss() {
+  const q = parseInt(document.getElementById("mIQty").value)||0, d = document.getElementById("mIDesc").value;
+  selIss[curIss] = {qty:q, desc:d, img:tImg};
+  const i = ISS.indexOf(curIss);
+  if(i>-1) document.getElementById(`bd-${i}`).innerText = q>0 ? q+" ชิ้น" : "ระบุจำนวน";
+  closeModal("mIss");
+}
+function calc() {
+  const s=parseFloat(document.getElementById("qSent").value)||0, r=parseFloat(document.getElementById("qRej").value)||0, w=parseFloat(document.getElementById("qWst").value)||0, g=parseFloat(document.getElementById("qGd").value)||0;
+  document.getElementById("pRej").innerText = s>0 ? (r/s*100).toFixed(2)+"%" : "0.00%";
+  document.getElementById("pWst").innerText = s>0 ? (w/s*100).toFixed(2)+"%" : "0.00%";
+  document.getElementById("pGd").innerText = s>0 ? (g/s*100).toFixed(2)+"%" : "0.00%";
+}
+
+async function saveRec(e) {
+  e.preventDefault();
+  const editIdx = parseInt(document.getElementById("editIndex").value);
+  const rec = {
+    caseType:document.getElementById("iType").value,
+    capaNo:document.getElementById("iCapa").value.trim(), receiveNo:document.getElementById("iRecNo").value.trim(),
+    jobNo:document.getElementById("iJob").value.trim(), jobName:document.getElementById("iJName").value.trim(),
+    customer:document.getElementById("iCus").value.trim(), supervisor:document.getElementById("iSup").value.trim(),
+    capaOwner:document.getElementById("iOwner").value.trim(),
+    machine:document.getElementById("iMac").value,
+    receiveDate:document.getElementById("iRecDate").value,
+    startDate:document.getElementById("iStartDate").value,
+    endDate:document.getElementById("iEndDate").value,
+    capaDueDate:document.getElementById("iDue").value,
+    capaStatus:document.getElementById("iCapStat").value,
+    custIssue:document.getElementById("iCustIssue").value.trim(),
+    qtySent:Number(document.getElementById("qSent").value)||0, qtyReject:Number(document.getElementById("qRej").value)||0,
+    qtyWaste:Number(document.getElementById("qWst").value)||0, qtyGood:Number(document.getElementById("qGd").value)||0,
+    issues:{...selIss}
+  };
+
+  if(editIdx >= 0) { 
+    recs[editIdx] = rec; 
+    alert("แก้ไขข้อมูลเรียบร้อยแล้ว!"); 
+  } else { 
+    recs.unshift(rec); 
+    alert("บันทึกข้อมูลเรียบร้อยแล้ว!"); 
+  }
+
+  const u = localStorage.getItem("wg6_url");
+  if(u) { 
+    try { 
+      await fetch(u, {method:"POST", mode:"no-cors", body:JSON.stringify(rec)}); 
+      setTimeout(() => { syncData(false); }, 1500);
+    } catch(err){} 
+  }
+
+  clrForm(); 
+  goTab("sum");
+}
+
+function editRecord(index) {
+  const r = recs[index];
+  document.getElementById("editIndex").value = index;
+  document.getElementById("formTitle").innerText = "✏️ แก้ไขข้อมูล Complain / Reject (เคส: " + r.capaNo + ")";
+  document.getElementById("btnSubmit").innerText = "💾 บันทึกการแก้ไข";
+
+  document.getElementById("iType").value = r.caseType || "Reject";
+  document.getElementById("iCapa").value = r.capaNo;
+  document.getElementById("iRecNo").value = r.receiveNo || "";
+  document.getElementById("iJob").value = r.jobNo || "";
+  document.getElementById("iJName").value = r.jobName || "";
+  document.getElementById("iCus").value = r.customer || "";
+  document.getElementById("iSup").value = r.supervisor || "";
+  document.getElementById("iOwner").value = r.capaOwner || "";
+  document.getElementById("iMac").value = r.machine || "";
+  document.getElementById("iRecDate").value = r.receiveDate || "";
+  document.getElementById("iStartDate").value = r.startDate || "";
+  document.getElementById("iEndDate").value = r.endDate || "";
+  document.getElementById("iDue").value = r.capaDueDate || "";
+  document.getElementById("iCapStat").value = r.capaStatus || "ยังไม่ตอบ";
+  document.getElementById("iCustIssue").value = r.custIssue || "";
+  document.getElementById("qSent").value = r.qtySent || 0;
+  document.getElementById("qRej").value = r.qtyReject || 0;
+  document.getElementById("qWst").value = r.qtyWaste || 0;
+  document.getElementById("qGd").value = r.qtyGood || 0;
+
+  calc(); chkDue();
+  selIss = JSON.parse(JSON.stringify(r.issues || {}));
+  ISS.forEach((n, i) => {
+    const ck = document.getElementById(`ck-${i}`), box = document.getElementById(`ib-${i}`), btn = document.getElementById(`bd-${i}`);
+    if(selIss[n]) {
+      ck.checked = true; box.classList.add("sel"); btn.classList.remove("hide");
+      btn.innerText = (selIss[n].qty > 0) ? selIss[n].qty + " ชิ้น" : "ระบุจำนวน";
+    } else {
+      ck.checked = false; box.classList.remove("sel"); btn.classList.add("hide");
+    }
+  });
+  goTab("rec");
+}
+
+function deleteRecord(index) {
+  if(confirm("คุณต้องการลบรายการนี้ใช่หรือไม่?")) {
+    recs.splice(index, 1); renderTableList(); draw(); alert("ลบรายการเรียบร้อยแล้ว");
+  }
+}
+
+function renderTableList() {
+  const tbody = document.getElementById("listTableBody");
+  if(!recs.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:30px">ยังไม่มีรายการบันทึก</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = recs.map((r, idx) => {
+    const st = getStat(r);
+    const tp = r.caseType || "Reject";
+    const cls = st === "ตอบแล้ว" ? "done" : (st === "เลยกำหนด" ? "over" : "ok");
+    const lbl = st === "ตอบแล้ว" ? "✅ ตอบแล้ว" : (st === "เลยกำหนด" ? "⚠️ ยังไม่ตอบ (เลยกำหนด)" : "⏳ ยังไม่ตอบ (ในกำหนด)");
+    const hasImg = r.issues && Object.values(r.issues).some(v => v.img);
+    const issKeys = r.issues ? Object.keys(r.issues) : [];
+    return `
+      <tr>
+        <td>
+          <div style="white-space:nowrap"><strong>${r.capaNo}</strong> ${hasImg ? '<span title="มีรูปภาพแนบ">📷</span>' : ''}</div>
+          <div style="margin-top:3px"><span class="tag-type ${tp==='Complain'?'cmp':'rej'}">${tp}</span></div>
+          ${r.receiveNo ? `<div style="margin-top:3px"><small style="color:#5b21b6;font-weight:600;white-space:nowrap">${r.receiveNo}</small></div>` : ''}
+        </td>
+        <td>
+          <strong>${r.jobName || '-'}</strong><br>
+          <small style="color:#64748b">🏢 ${r.customer || '-'}</small>
+          ${r.custIssue ? `<div style="font-size:0.76rem;color:#be123c;margin-top:3px;font-weight:600">📌 ปัญหาลูกค้า: ${r.custIssue}</div>` : ''}
+          ${issKeys.length ? `<div style="font-size:0.74rem;color:#475569;margin-top:2px">🔍 ปัญหาที่พบ: ${issKeys.join(", ")}</div>` : ''}
+        </td>
+        <td>
+          <span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-weight:600">${r.machine}</span>
+          <div style="font-size:0.78rem;color:#475569;margin-top:2px">👤 ${r.capaOwner || '-'}</div>
+        </td>
+        <td style="font-size:0.78rem;line-height:1.45;white-space:nowrap">
+          <div>📥 รับเข้า: <strong>${r.receiveDate || '-'}</strong></div>
+          <div style="color:#475569">▶️ เริ่มคัด: ${r.startDate || '-'}</div>
+          <div style="color:#059669">✅ คัดเสร็จ: ${r.endDate || 'ยังไม่เสร็จ'}</div>
+        </td>
+        <td><div style="white-space:nowrap;margin-bottom:3px">Due: ${r.capaDueDate || '-'}</div><span class="tag-due ${cls}">${lbl}</span></td>
+        <td style="white-space:nowrap">ส่ง: ${Number(r.qtySent||0).toLocaleString()}<br><span style="color:#dc2626">จำนวน: ${Number(r.qtyReject||0).toLocaleString()}</span></td>
+        <td>
+          <div style="display:flex;gap:5px">
+            <button type="button" class="btn btn-info btn-sm" onclick="viewDetail(${idx})" title="ดูรายละเอียดและรูปภาพ">🔍</button>
+            <button type="button" class="btn btn-pri btn-sm" onclick="editRecord(${idx})" title="แก้ไข">✏️</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="deleteRecord(${idx})" title="ลบ">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function clrForm() {
+  document.getElementById("rForm").reset();
+  document.getElementById("editIndex").value = "-1";
+  document.getElementById("formTitle").innerText = "ฟอร์มบันทึกข้อมูล Complain / Reject WG6";
+  document.getElementById("btnSubmit").innerText = "💾 บันทึกข้อมูล";
+  document.getElementById("dueHint").innerText=""; selIss={}; mkIss(); calc();
+}
+
+function draw() {
+  const ft=document.getElementById("fType").value, fm=document.getElementById("fMac").value, fc=document.getElementById("fCus").value, fs=document.getElementById("fSup").value, fo=document.getElementById("fOwner").value, fp=document.getElementById("fCap").value;
+  const ds=document.getElementById("fDateStart").value, de=document.getElementById("fDateEnd").value;
+  
+  updOpt("fCus",[...new Set(recs.map(r=>r.customer))],"บริษัทลูกค้าทั้งหมด",fc);
+  updOpt("fSup",[...new Set(recs.map(r=>r.supervisor))],"หัวหน้าเครื่องทั้งหมด",fs);
+  updOpt("fOwner",[...new Set(recs.map(r=>r.capaOwner))],"ผู้รับผิดชอบ CAPA ทั้งหมด",fo);
+
+  const fl = recs.filter(r => {
+    if(ft && (r.caseType||"Reject")!==ft) return false;
+    if(fm && r.machine!==fm) return false;
+    if(fc && r.customer!==fc) return false;
+    if(fs && r.supervisor!==fs) return false;
+    if(fo && r.capaOwner!==fo) return false;
+    if(fp && getStat(r)!==fp) return false;
+    if(ds && r.receiveDate && r.receiveDate < ds) return false;
+    if(de && r.receiveDate && r.receiveDate > de) return false;
+    return true;
+  });
+
+  const tr = fl.reduce((s,r)=>s+(Number(r.qtyReject)||0),0);
+  const aw = fl.length ? (fl.reduce((s,r)=>s+(r.qtySent>0?r.qtyWaste/r.qtySent*100:0),0)/fl.length).toFixed(2) : "0.00";
+  let done=0, inDue=0, ov=0;
+  fl.forEach(r => {
+    const st = getStat(r);
+    if(st==="ตอบแล้ว") done++;
+    else if(st==="เลยกำหนด") ov++;
+    else inDue++;
+  });
+
+  document.getElementById("kRej").innerText = tr.toLocaleString();
+  document.getElementById("kWst").innerText = aw+"%";
+  document.getElementById("kDone").innerText = done+" เคส";
+  document.getElementById("kInDue").innerText = inDue+" เคส";
+  document.getElementById("kOver").innerText = ov+" เคส";
+
+  const activeSortingList = recs.filter(r => isSortingActive(r));
+  document.getElementById("activeSortingCount").innerText = activeSortingList.length + " จ็อบ";
+  const activeBody = document.getElementById("activeSortingTableBody");
+  if(!activeSortingList.length) {
+    activeBody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px">ไม่มีจ็อบงานที่กำลังทำการคัดอยู่ในขณะนี้</td></tr>`;
+  } else {
+    activeBody.innerHTML = activeSortingList.map(r => {
+      const realIdx = recs.indexOf(r);
+      return `
+        <tr class="row-click" onclick="viewDetail(${realIdx})">
+          <td><strong>${r.capaNo}</strong></td>
+          <td><strong>${r.jobName || '-'}</strong><br><small style="color:#64748b">Job: ${r.jobNo || '-'}</small></td>
+          <td>${r.customer || '-'}<br><span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-size:0.75rem">${r.machine}</span></td>
+          <td>${Number(r.qtySent||0).toLocaleString()} ชิ้น</td>
+          <td><strong style="color:#dc2626">${Number(r.qtyReject||0).toLocaleString()} ชิ้น</strong></td>
+          <td><span class="tag-due ok">⏳ กำลังคัด (เริ่ม: ${r.startDate})</span></td>
+          <td><button type="button" class="btn btn-info btn-sm" onclick="event.stopPropagation();viewDetail(${realIdx})">🔍 ดูข้อมูล</button></td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  const isum={}; fl.forEach(r=>{ if(r.issues) Object.entries(r.issues).forEach(([k,v])=>isum[k]=(isum[k]||0)+(Number(v.qty)||0)); });
+  const sIss = Object.entries(isum).sort((a,b)=>b[1]-a[1]);
+  bar("cTop", sIss.slice(0,5), true); bar("cAll", sIss, true);
+
+  const msum={}; fl.forEach(r=>msum[r.machine]=(msum[r.machine]||0)+(Number(r.qtyReject)||0));
+  bar("cMac", Object.entries(msum).sort((a,b)=>b[1]-a[1]), false, "#5b21b6");
+
+  const csum={}; fl.forEach(r=>csum[r.customer]=(csum[r.customer]||0)+(Number(r.qtyReject)||0));
+  bar("cCus", Object.entries(csum).sort((a,b)=>b[1]-a[1]), false, "#eab308");
+
+  const sumBody = document.getElementById("sumTableBody");
+  if(!fl.length) {
+    sumBody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:24px">ไม่พบรายการตามเงื่อนไขที่เลือก</td></tr>`;
+  } else {
+    sumBody.innerHTML = fl.map(r => {
+      const realIdx = recs.indexOf(r);
+      const st = getStat(r);
+      const tp = r.caseType || "Reject";
+      const cls = st === "ตอบแล้ว" ? "done" : (st === "เลยกำหนด" ? "over" : "ok");
+      const lbl = st === "ตอบแล้ว" ? "✅ ตอบแล้ว" : (st === "เลยกำหนด" ? "⚠️ เลยกำหนด" : "⏳ อยู่ในกำหนด");
+      const issKeys = r.issues ? Object.keys(r.issues) : [];
+      const hasImg = r.issues && Object.values(r.issues).some(v => v.img);
+      
+      return `
+        <tr class="row-click" onclick="viewDetail(${realIdx})">
+          <!-- ช่องที่ 1: CAPA, แยกบรรทัดประเภท, รหัสรับรีเจ็ค + Job บรรทัดเดียวกัน และปัญหาที่ลูกค้ารีเจ็ค -->
+          <td>
+            <div style="white-space:nowrap"><strong>${r.capaNo}</strong></div>
+            <div style="margin-top:3px"><span class="tag-type ${tp==='Complain'?'cmp':'rej'}">${tp}</span></div>
+            <div style="margin-top:4px;white-space:nowrap">
+              <small style="color:#5b21b6;font-weight:600">${r.receiveNo || '-'}</small> | 
+              <small style="color:#0284c7;font-weight:600">Job: ${r.jobNo || '-'}</small>
+            </div>
+            ${r.custIssue ? `<div style="margin-top:6px;padding:4px 7px;background:#fff1f2;border-left:3px solid #e11d48;border-radius:4px;font-size:0.75rem;color:#9f1239;line-height:1.4"><strong>📌 ปัญหาลูกค้า:</strong> ${r.custIssue}</div>` : ''}
+          </td>
+          <!-- ช่องที่ 2: ชื่องาน และ ลูกค้า -->
+          <td>
+            <strong>${r.jobName || '-'}</strong><br>
+            <small style="color:#64748b">${r.customer || '-'}</small>
+          </td>
+          <!-- ช่องที่ 3: เครื่อง และ ผู้รับผิดชอบ CAPA -->
+          <td>
+            <span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-weight:600">${r.machine}</span>
+            <div style="font-size:0.75rem;color:#475569;margin-top:2px;white-space:nowrap">👤 ${r.capaOwner || '-'}</div>
+          </td>
+          <!-- ช่องที่ 4: รายละเอียดปัญหาที่พบ -->
+          <td style="font-size:0.8rem">
+            ${issKeys.length ? `<span style="color:#2e1065;font-weight:600">${issKeys.slice(0,2).join(", ") + (issKeys.length>2 ? ` (+${issKeys.length-2})` : '')}</span>` : '-'}
+            ${hasImg ? '<div style="color:#0284c7;font-size:0.74rem;font-weight:600;margin-top:2px">📷 มีรูปภาพแนบ</div>' : ''}
+          </td>
+          <td><span class="tag-due ${cls}">${lbl}</span></td>
+          <td style="white-space:nowrap"><strong style="color:#dc2626">${Number(r.qtyReject||0).toLocaleString()}</strong> <small>ชิ้น</small></td>
+          <td><button type="button" class="btn btn-info btn-sm" onclick="event.stopPropagation();viewDetail(${realIdx})">🔍 ดูข้อมูล</button></td>
+        </tr>
+      `;
+    }).join("");
+  }
+}
+
+function bar(id, arr, useCol, col) {
+  const el = document.getElementById(id);
+  if(!arr.length){ el.innerHTML=`<div style="color:#94a3b8;text-align:center;padding:20px;font-size:.85rem">ยังไม่มีข้อมูล</div>`; return; }
+  const mx = Math.max(...arr.map(d=>d[1]),1);
+  el.innerHTML = arr.map(([l,v])=>`<div class="brow"><div class="binfo"><span>${l}</span><span>${v.toLocaleString()} ชิ้น</span></div><div class="btrack"><div class="bfill" style="width:${Math.round(v/mx*100)}%;background:${useCol?(ICOL[l]||"#5b21b6"):col}"></div></div></div>`).join("");
+}
+
+function updOpt(id, arr, def, cur) {
+  const el=document.getElementById(id); el.innerHTML=`<option value="">${def}</option>`;
+  arr.filter(Boolean).forEach(v=>el.innerHTML+=`<option value="${v}">${v}</option>`); el.value=cur;
+}
+
+function updConn(st, msg) {
+  const d=document.getElementById("hDot"), t=document.getElementById("hTxt"), m=document.getElementById("mStat");
+  d.className="dot";
+  if(st==="ok"){ d.classList.add("ok"); t.innerText=msg||"เชื่อมต่อ Apps Script แล้ว"; m.innerHTML=`<span style="color:#059669;font-weight:600">🟢 เชื่อมต่อสำเร็จ (เรียลไทม์)</span>`; }
+  else if(st==="err"){ d.classList.add("err"); t.innerText="เชื่อมต่อไม่สำเร็จ"; m.innerHTML=`<span style="color:#dc2626;font-weight:600">🔴 เชื่อมต่อไม่สำเร็จ ตรวจสอบ URL/สิทธิ์</span>`; }
+  else { t.innerText="โหมดข้อมูลในเครื่อง"; m.innerHTML=`<span>⚪ ยังไม่ได้เชื่อมต่อ URL</span>`; }
+}
+
+async function syncData(notify) {
+  const u = localStorage.getItem("wg6_url");
+  if(!u){ updConn("local"); draw(); return; }
+  try {
+    const res = await fetch(u); const data = await res.json();
+    if(Array.isArray(data)){ if(data.length>0) recs=data; updConn("ok"); if(notify) alert("ดึงข้อมูลสำเร็จ ("+data.length+" รายการ)"); }
+  } catch(e){ updConn("err"); if(notify) alert("เชื่อมต่อ URL ไม่สำเร็จ ตรวจสอบสิทธิ์ Anyone ใน Apps Script"); }
+  draw(); renderTableList();
+}
+
+async function testConn() {
+  const u = document.getElementById("sUrl").value.trim();
+  if(!u){ alert("กรุณาวาง URL ก่อน"); return; }
+  document.getElementById("mStat").innerText = "⏳ กำลังทดสอบ...";
+  try { const res = await fetch(u); await res.json(); updConn("ok"); alert("เชื่อมต่อ Apps Script สำเร็จ!"); }
+  catch(e){ updConn("err"); alert("เชื่อมต่อไม่สำเร็จ! ตรวจสอบสิทธิ์ Deploy Web App เป็น 'ทุกคน (Anyone)'"); }
+}
+
+function copyCode() {
+  const box = document.getElementById("codeTxt"); box.select();
+  navigator.clipboard ? navigator.clipboard.writeText(box.value) : document.execCommand("copy");
+  alert("คัดลอกโค้ดเรียบร้อย!");
+}
+
+function saveSet() {
+  const u = document.getElementById("sUrl").value.trim();
+  if(u){ localStorage.setItem("wg6_url", u); syncData(false); } else { localStorage.removeItem("wg6_url"); updConn("local"); }
+  closeModal("mSet"); alert("บันทึกการตั้งค่าเรียบร้อย");
+}
+
+function upImg(e, type) {
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = ev => {
+    if(type==="logo"){ localStorage.setItem("wg6_logo", ev.target.result); setLogo(ev.target.result); }
+    else { localStorage.setItem("wg6_bg", ev.target.result); applyBg(ev.target.result); }
+  };
+  rd.readAsDataURL(f);
+}
+
+function setLogo(s){ const i=document.getElementById("cLogo"); i.src=s; i.style.display="block"; document.getElementById("dLogo").style.display="none"; }
+function rstImg(){ localStorage.removeItem("wg6_logo"); localStorage.removeItem("wg6_bg"); document.getElementById("cLogo").style.display="none"; document.getElementById("dLogo").style.display="block"; applyBg(""); alert("รีเซ็ตภาพแล้ว"); }
+</script>
+</body>
+</html>
