@@ -261,15 +261,16 @@ tr:hover{background:#f8fafc}
         <div class="fg"><label>หัวหน้าเครื่อง *</label><input type="text" id="iSup" required></div>
         <div class="fg"><label>ผู้รับผิดชอบ CAPA (CAPA Owner) *</label><input type="text" id="iOwner" required placeholder="ระบุชื่อผู้รับผิดชอบทำ CAPA"></div>
         
-        <!-- ส่วนเลือกเครื่องจักรหลายตัว + ระบุเองได้ -->
+        <!-- ส่วนเลือกเครื่องจักรหลายตัว และระบุเพิ่มเติมเองนอกเหนือจากรายการได้ -->
         <div class="fg">
-          <label>หมายเลขเครื่องจักร / แผนก (เลือกได้หลายเครื่อง) *</label>
-          <select id="iMac" multiple required style="height: 110px;"></select>
-          <small style="color:#64748b;font-size:0.75rem">กด Ctrl (หรือ Cmd) ค้างไว้เพื่อเลือกหลายเครื่อง</small>
+          <label>หมายเลขเครื่องจักร / แผนก (เลือกจากรายการ หรือระบุเพิ่มด้านล่าง)</label>
+          <select id="iMac" multiple style="height: 110px;"></select>
+          <small style="color:#64748b;font-size:0.75rem">กด Ctrl (หรือ Cmd) ค้างไว้เพื่อเลือกหลายเครื่องจากรายการ</small>
         </div>
         <div class="fg">
-          <label>ระบุเครื่องจักรเพิ่มเติมเอง (ถ้ามี)</label>
-          <input type="text" id="iMacCustom" placeholder="เช่น Machine X, Machine Y (คั่นด้วยจุลภาค)">
+          <label>ระบุเครื่องจักร/แผนกเพิ่มเติมเอง (นอกเหนือจากรายการ)</label>
+          <input type="text" id="iMacCustom" placeholder="เช่น Machine X, Machine Y, แผนกพิเศษ (คั่นด้วยจุลภาค)">
+          <small style="color:#64748b;font-size:0.75rem">สามารถพิมพ์ระบุเองได้อิสระ หากไม่มีในรายการด้านบน</small>
         </div>
 
         <div class="fg"><label>วันที่รับเข้ารีเจ็ค / ร้องเรียน *</label><input type="date" id="iRecDate" required></div>
@@ -361,7 +362,7 @@ tr:hover{background:#f8fafc}
   </div>
 </div>
 
-<!-- Modal แสดงรายการตามสถานะ CAPA (แทนที่ modal เก่าที่ดูได้แค่อย่างเดียว) -->
+<!-- Modal แสดงรายการตามสถานะ CAPA -->
 <div id="mCapaListModal" class="modal hide">
   <div class="mbox" style="max-width:750px">
     <div class="mhead">
@@ -497,10 +498,8 @@ function applyBg(bgUrl) {
 window.onload = () => {
   document.getElementById("codeTxt").value = GAS_CODE;
   const iMacSel = document.getElementById("iMac");
-  const fMacSel = document.getElementById("fMac");
   MACS.forEach(m => {
     iMacSel.innerHTML += `<option value="${m}">${m}</option>`;
-    fMacSel.innerHTML += `<option value="${m}">${m}</option>`;
   });
   mkIss();
   if(localStorage.getItem("wg6_logo")) setLogo(localStorage.getItem("wg6_logo"));
@@ -801,6 +800,12 @@ async function saveRec(e) {
     const customs = customMac.split(',').map(m => m.trim()).filter(Boolean);
     allMacs = allMacs.concat(customs);
   }
+
+  if(allMacs.length === 0) {
+    alert("กรุณาเลือกเครื่องจักรจากรายการ หรือระบุเครื่องจักร/แผนกเพิ่มเติมเองอย่างน้อย 1 รายการ");
+    return;
+  }
+
   const machineStr = allMacs.join(", ");
 
   const rec = {
@@ -962,6 +967,16 @@ function draw() {
   const ft=document.getElementById("fType").value, fm=document.getElementById("fMac").value, fc=document.getElementById("fCus").value, fs=document.getElementById("fSup").value, fo=document.getElementById("fOwner").value, fp=document.getElementById("fCap").value;
   const ds=document.getElementById("fDateStart").value, de=document.getElementById("fDateEnd").value;
   
+  // รวบรวมเครื่องจักรทั้งหมดรวมถึงเครื่องที่พิมพ์ระบุเอง สำหรับใส่ในตัวกรอง (Filter)
+  let allMacsSet = new Set();
+  recs.forEach(r => {
+    if(r.machine) {
+      r.machine.split(',').forEach(m => {
+        if(m.trim()) allMacsSet.add(m.trim());
+      });
+    }
+  });
+  updOpt("fMac", [...allMacsSet], "เครื่องจักร/แผนกทั้งหมด", fm);
   updOpt("fCus",[...new Set(recs.map(r=>r.customer))],"บริษัทลูกค้าทั้งหมด",fc);
   updOpt("fSup",[...new Set(recs.map(r=>r.supervisor))],"หัวหน้าเครื่องทั้งหมด",fs);
   updOpt("fOwner",[...new Set(recs.map(r=>r.capaOwner))],"ผู้รับผิดชอบ CAPA ทั้งหมด",fo);
@@ -1143,4 +1158,3 @@ function rstImg(){ localStorage.removeItem("wg6_logo"); localStorage.removeItem(
 </script>
 </body>
 </html>
-```[cite: 1]
