@@ -157,11 +157,19 @@ tr:hover{background:#f8fafc}
         <option value="อยู่ในกำหนด">⏳ ยังไม่ตอบ (อยู่ในกำหนด)</option>
         <option value="เลยกำหนด">⚠️ ยังไม่ตอบ (เลยกำหนด)</option>
       </select>
+      
+      <!-- ช่องเลือกเฉพาะเดือน -->
+      <div style="display:flex;align-items:center;gap:4px;font-size:0.8rem;background:#fff;padding:4px 8px;border:1px solid #cbd5e1;border-radius:9px">
+        <span>🗓️ เดือน:</span>
+        <input type="month" id="fMonth" onchange="onMonthChange()" style="border:none;padding:2px;font-size:0.8rem;width:130px">
+      </div>
+
+      <!-- ช่องเลือกช่วงวันที่ -->
       <div style="display:flex;align-items:center;gap:4px;font-size:0.8rem;background:#fff;padding:4px 8px;border:1px solid #cbd5e1;border-radius:9px">
         <span>📅 ช่วงวันที่:</span>
-        <input type="date" id="fDateStart" onchange="draw()" style="border:none;padding:2px;font-size:0.8rem;width:120px">
+        <input type="date" id="fDateStart" onchange="onDateRangeChange()" style="border:none;padding:2px;font-size:0.8rem;width:120px">
         <span>ถึง</span>
-        <input type="date" id="fDateEnd" onchange="draw()" style="border:none;padding:2px;font-size:0.8rem;width:120px">
+        <input type="date" id="fDateEnd" onchange="onDateRangeChange()" style="border:none;padding:2px;font-size:0.8rem;width:120px">
         <button type="button" class="btn btn-out btn-sm" onclick="clrDateFilter()" style="padding:2px 6px;font-size:0.7rem">ล้างวันที่</button>
       </div>
     </div>
@@ -261,7 +269,6 @@ tr:hover{background:#f8fafc}
         <div class="fg"><label>หัวหน้าเครื่อง *</label><input type="text" id="iSup" required></div>
         <div class="fg"><label>ผู้รับผิดชอบ CAPA (CAPA Owner) *</label><input type="text" id="iOwner" required placeholder="ระบุชื่อผู้รับผิดชอบทำ CAPA"></div>
         
-        <!-- ส่วนเลือกเครื่องจักรหลายตัว และระบุเพิ่มเติมเองนอกเหนือจากรายการได้ -->
         <div class="fg">
           <label>หมายเลขเครื่องจักร / แผนก (เลือกจากรายการ หรือระบุเพิ่มด้านล่าง)</label>
           <select id="iMac" multiple style="height: 110px;"></select>
@@ -288,7 +295,6 @@ tr:hover{background:#f8fafc}
         </div>
       </div>
 
-      <!-- หัวข้อ: ปัญหาที่ลูกค้ารีเจ็ค -->
       <div class="fg" style="margin-bottom:16px">
         <label style="color:#b91c1c;font-size:0.9rem">📌 ปัญหาที่ลูกค้ารีเจ็ค / Complain *</label>
         <textarea id="iCustIssue" rows="2" required placeholder="ระบุรายละเอียดปัญหาที่ลูกค้าแจ้งรีเจ็ค หรือข้อร้องเรียนจากลูกค้า..."></textarea>
@@ -307,7 +313,6 @@ tr:hover{background:#f8fafc}
         </div>
       </div>
 
-      <!-- ส่วนรายละเอียดปัญหาที่พบ -->
       <div class="fg" style="margin-bottom:16px">
         <label style="color:#2e1065;font-size:0.9rem">🔍 รายละเอียดปัญหาที่พบ (คลิกเลือกหัวข้อเพื่อระบุจำนวน รายละเอียด และแนบรูปภาพได้หลายรูป)</label>
         <div id="iBox" class="igrid"></div>
@@ -551,10 +556,54 @@ function goTab(t) {
 
 function openModal(id) { document.getElementById(id).classList.remove("hide"); }
 function closeModal(id) { document.getElementById(id).classList.add("hide"); }
+
+// ฟังก์ชันจัดการตัวกรองเดือนและวันที่
+function onMonthChange() {
+  const m = document.getElementById("fMonth").value;
+  if(m) {
+    // ล้างช่วงวันที่แบบระบุวัน เพื่อไม่ให้ซ้ำซ้อนกัน
+    document.getElementById("fDateStart").value = "";
+    document.getElementById("fDateEnd").value = "";
+  }
+  draw();
+}
+
+function onDateRangeChange() {
+  const ds = document.getElementById("fDateStart").value;
+  const de = document.getElementById("fDateEnd").value;
+  if(ds || de) {
+    // ล้างช่องเลือกเดือน เมื่อมีการระบุช่วงวันเอง
+    document.getElementById("fMonth").value = "";
+  }
+  draw();
+}
+
 function clrDateFilter() {
+  document.getElementById("fMonth").value = "";
   document.getElementById("fDateStart").value = "";
   document.getElementById("fDateEnd").value = "";
   draw();
+}
+
+// ฟังก์ชันช่วยแปลงรูปแบบวันที่ให้เป็นมาตรฐาน YYYY-MM-DD (ป้องกันกรณี Google Sheets ส่งค่าวันที่รูปแบบอื่นมา)
+function normDateStr(val) {
+  if(!val) return "";
+  const s = String(val).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10);
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+    const parts = s.split('/');
+    let y = parseInt(parts[2], 10);
+    if(y > 2400) y -= 543; // แปลง พ.ศ. เป็น ค.ศ. อัตโนมัติ
+    return `${y}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+  }
+  const d = new Date(s);
+  if(!isNaN(d.getTime())) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  return s;
 }
 
 function viewDetail(index) {
@@ -792,7 +841,6 @@ async function saveRec(e) {
   e.preventDefault();
   const editIdx = parseInt(document.getElementById("editIndex").value);
   
-  // รวบรวมเครื่องจักรที่เลือกจาก multi-select และช่องระบุเอง
   const selectedMacs = Array.from(document.getElementById("iMac").selectedOptions).map(opt => opt.value);
   const customMac = document.getElementById("iMacCustom").value.trim();
   let allMacs = [...selectedMacs];
@@ -861,7 +909,6 @@ function editRecord(index) {
   document.getElementById("iSup").value = r.supervisor || "";
   document.getElementById("iOwner").value = r.capaOwner || "";
 
-  // จัดการแยกเครื่องจักรเข้า select และช่อง custom
   const macsArr = (r.machine || "").split(',').map(m => m.trim()).filter(Boolean);
   const macSelect = document.getElementById("iMac");
   let customList = [];
@@ -875,10 +922,10 @@ function editRecord(index) {
   });
   document.getElementById("iMacCustom").value = customList.join(", ");
 
-  document.getElementById("iRecDate").value = r.receiveDate || "";
-  document.getElementById("iStartDate").value = r.startDate || "";
-  document.getElementById("iEndDate").value = r.endDate || "";
-  document.getElementById("iDue").value = r.capaDueDate || "";
+  document.getElementById("iRecDate").value = normDateStr(r.receiveDate);
+  document.getElementById("iStartDate").value = normDateStr(r.startDate);
+  document.getElementById("iEndDate").value = normDateStr(r.endDate);
+  document.getElementById("iDue").value = normDateStr(r.capaDueDate);
   document.getElementById("iCapStat").value = r.capaStatus || "ยังไม่ตอบ";
   document.getElementById("iCustIssue").value = r.custIssue || "";
   document.getElementById("qSent").value = r.qtySent || 0;
@@ -965,9 +1012,9 @@ function clrForm() {
 
 function draw() {
   const ft=document.getElementById("fType").value, fm=document.getElementById("fMac").value, fc=document.getElementById("fCus").value, fs=document.getElementById("fSup").value, fo=document.getElementById("fOwner").value, fp=document.getElementById("fCap").value;
+  const fMonth=document.getElementById("fMonth").value;
   const ds=document.getElementById("fDateStart").value, de=document.getElementById("fDateEnd").value;
   
-  // รวบรวมเครื่องจักรทั้งหมดรวมถึงเครื่องที่พิมพ์ระบุเอง สำหรับใส่ในตัวกรอง (Filter)
   let allMacsSet = new Set();
   recs.forEach(r => {
     if(r.machine) {
@@ -983,13 +1030,27 @@ function draw() {
 
   const fl = recs.filter(r => {
     if(ft && (r.caseType||"Reject")!==ft) return false;
-    if(fm && !r.machine.includes(fm)) return false;
+    if(fm && !(r.machine||"").includes(fm)) return false;
     if(fc && r.customer!==fc) return false;
     if(fs && r.supervisor!==fs) return false;
     if(fo && r.capaOwner!==fo) return false;
     if(fp && getStat(r)!==fp) return false;
-    if(ds && r.receiveDate && r.receiveDate < ds) return false;
-    if(de && r.receiveDate && r.receiveDate > de) return false;
+    
+    // แปลงวันที่รับเข้าให้เป็นรูปแบบมาตรฐาน YYYY-MM-DD ก่อนเปรียบเทียบ
+    const recD = normDateStr(r.receiveDate);
+
+    // กรณีเลือกเฉพาะเดือน (YYYY-MM)
+    if(fMonth) {
+      if(!recD || !recD.startsWith(fMonth)) return false;
+    }
+
+    // กรณีเลือกช่วงวันที่ (YYYY-MM-DD)
+    if(ds || de) {
+      if(!recD) return false;
+      if(ds && recD < ds) return false;
+      if(de && recD > de) return false;
+    }
+
     return true;
   });
 
