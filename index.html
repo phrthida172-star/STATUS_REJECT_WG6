@@ -95,7 +95,7 @@ select,input,textarea{padding:8px 11px;border:1px solid #cbd5e1;border-radius:9p
 .table-responsive{width:100%;overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:0.85rem;text-align:left}
 th,td{padding:10px 12px;border-bottom:1px solid #e2e8f0;vertical-align:top}
-th{background:#f8fafc;color:#2e1065;font-weight:700}
+th{background:#f8fafc;color:#2e1065;font-weight:700;white-space:nowrap}
 tr:hover{background:#f8fafc}
 .row-click{cursor:pointer}
 .tag-due{display:inline-block;padding:3px 8px;border-radius:6px;font-size:0.75rem;font-weight:600;white-space:nowrap}
@@ -106,11 +106,13 @@ tr:hover{background:#f8fafc}
 .tag-type.rej{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}
 .tag-type.cmp{background:#ffedd5;color:#c2410c;border:1px solid #fed7aa}
 
+.no-wrap { white-space: nowrap; }
+.text-ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
+
 .det-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;background:#f8fafc;padding:12px;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:14px;font-size:0.83rem}
 .det-grid div span{color:#64748b;font-size:0.74rem;display:block}
 .det-grid div strong{color:#1e293b;font-size:0.86rem}
 .det-iss-card{border:1px solid #ddd6fe;background:#f5f3ff;border-radius:10px;padding:12px;margin-bottom:10px}
-.det-iss-img{max-width:100%;max-height:240px;border-radius:8px;margin-top:8px;border:1px solid #cbd5e1;cursor:zoom-in;display:block}
 .cust-prob-box{background:#fff1f2;border:1px solid #fecdd3;border-left:4px solid #e11d48;padding:10px 12px;border-radius:8px;margin-bottom:14px;font-size:0.86rem;color:#881337}
 </style>
 </head>
@@ -159,13 +161,13 @@ tr:hover{background:#f8fafc}
       </select>
       
       <!-- ช่องเลือกเฉพาะเดือน -->
-      <div style="display:flex;align-items:center;gap:4px;font-size:0.8rem;background:#fff;padding:4px 8px;border:1px solid #cbd5e1;border-radius:9px">
+      <div style="display:flex;align-items:center;gap:4px;font-size:0.8rem;background:#fff;padding:4px 8px;border:1px solid #cbd5e1;border-radius:9px" class="no-wrap">
         <span>🗓️ เดือน:</span>
         <input type="month" id="fMonth" onchange="onMonthChange()" style="border:none;padding:2px;font-size:0.8rem;width:130px">
       </div>
 
       <!-- ช่องเลือกช่วงวันที่ -->
-      <div style="display:flex;align-items:center;gap:4px;font-size:0.8rem;background:#fff;padding:4px 8px;border:1px solid #cbd5e1;border-radius:9px">
+      <div style="display:flex;align-items:center;gap:4px;font-size:0.8rem;background:#fff;padding:4px 8px;border:1px solid #cbd5e1;border-radius:9px" class="no-wrap">
         <span>📅 ช่วงวันที่:</span>
         <input type="date" id="fDateStart" onchange="onDateRangeChange()" style="border:none;padding:2px;font-size:0.8rem;width:120px">
         <span>ถึง</span>
@@ -203,16 +205,38 @@ tr:hover{background:#f8fafc}
       <table>
         <thead>
           <tr>
-            <th>CAPA No. & ประเภท</th>
-            <th>จ็อบงาน / ชื่องาน</th>
-            <th>ลูกค้า / เครื่องจักร</th>
-            <th>จำนวนผลิต (ชิ้น)</th>
-            <th>จำนวนรับรีเจ็ค</th>
-            <th>สถานะการคัด</th>
-            <th>จัดการ</th>
+            <th class="no-wrap">CAPA No. & ประเภท</th>
+            <th class="no-wrap">จ็อบงาน / ชื่องาน</th>
+            <th class="no-wrap">ลูกค้า / เครื่องจักร</th>
+            <th class="no-wrap">จำนวนผลิต (ชิ้น)</th>
+            <th class="no-wrap">จำนวนรับรีเจ็ค</th>
+            <th class="no-wrap">สถานะการคัด</th>
+            <th class="no-wrap">จัดการ</th>
           </tr>
         </thead>
         <tbody id="activeSortingTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ส่วนแสดงผลสรุปงานรับเข้ารีเจ็คและปัญหาของแต่ละบริษัทลูกค้า -->
+  <div class="card" style="border-left:5px solid #5b21b6">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div class="ctitle" style="margin-bottom:0;border:none;padding:0;color:#5b21b6">🏢 สรุปงานรับเข้ารีเจ็คและปัญหาของแต่ละบริษัทลูกค้า (คลิกชื่อบริษัทเพื่อดูรายละเอียดแต่ละจ็อบ)</div>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th class="no-wrap">บริษัทลูกค้า (คลิกดูรายละเอียด)</th>
+            <th class="no-wrap">จำนวนเคส</th>
+            <th class="no-wrap">ยอดส่ง (ชิ้น)</th>
+            <th class="no-wrap">ยอดรีเจ็ค (ชิ้น) / %</th>
+            <th class="no-wrap">ของเสีย (ชิ้น) / %</th>
+            <th>ปัญหาที่ลูกค้ารีเจ็ค / แจ้งปัญหาจริงพร้อมจำนวน</th>
+          </tr>
+        </thead>
+        <tbody id="customerSummaryTableBody"></tbody>
       </table>
     </div>
   </div>
@@ -233,13 +257,13 @@ tr:hover{background:#f8fafc}
       <table>
         <thead>
           <tr>
-            <th style="min-width:240px">CAPA, ประเภท & ปัญหาลูกค้า</th>
-            <th>ชื่องาน / ลูกค้า</th>
-            <th>เครื่อง / ผู้รับผิดชอบ CAPA</th>
-            <th>รายละเอียดปัญหาที่พบ / รูปภาพ</th>
-            <th>สถานะ CAPA</th>
-            <th>จำนวน</th>
-            <th>ดูข้อมูล</th>
+            <th style="min-width:200px" class="no-wrap">CAPA, ประเภท & ปัญหาลูกค้า</th>
+            <th class="no-wrap">ชื่องาน / ลูกค้า</th>
+            <th class="no-wrap">เครื่อง / ผู้รับผิดชอบ CAPA</th>
+            <th>รายละเอียดปัญหาที่พบพร้อมจำนวน / รูปภาพ</th>
+            <th class="no-wrap">สถานะ CAPA</th>
+            <th class="no-wrap">จำนวน</th>
+            <th class="no-wrap">ดูข้อมูล</th>
           </tr>
         </thead>
         <tbody id="sumTableBody"></tbody>
@@ -337,13 +361,13 @@ tr:hover{background:#f8fafc}
       <table>
         <thead>
           <tr>
-            <th>CAPA No. & ประเภท</th>
+            <th class="no-wrap">CAPA No. & ประเภท</th>
             <th>ชื่องาน / ลูกค้า & ปัญหาลูกค้า</th>
-            <th>เครื่อง / ผู้รับผิดชอบ</th>
-            <th>วันที่รับเข้า / คัดงาน</th>
-            <th>Due Date & สถานะ CAPA</th>
-            <th>ส่ง / รีเจ็ค</th>
-            <th>จัดการ</th>
+            <th class="no-wrap">เครื่อง / ผู้รับผิดชอบ</th>
+            <th class="no-wrap">วันที่รับเข้า / คัดงาน</th>
+            <th class="no-wrap">Due Date & สถานะ</th>
+            <th class="no-wrap">ส่ง / รีเจ็ค</th>
+            <th class="no-wrap">จัดการ</th>
           </tr>
         </thead>
         <tbody id="listTableBody"></tbody>
@@ -378,11 +402,11 @@ tr:hover{background:#f8fafc}
       <table>
         <thead>
           <tr>
-            <th>CAPA / ประเภท</th>
+            <th class="no-wrap">CAPA / ประเภท</th>
             <th>ชื่องาน / ลูกค้า</th>
-            <th>เครื่อง / ผู้รับผิดชอบ</th>
-            <th>Due Date</th>
-            <th>จำนวน</th>
+            <th class="no-wrap">เครื่อง / ผู้รับผิดชอบ</th>
+            <th class="no-wrap">Due Date</th>
+            <th class="no-wrap">จำนวน</th>
           </tr>
         </thead>
         <tbody id="capaListModalBody"></tbody>
@@ -390,6 +414,34 @@ tr:hover{background:#f8fafc}
     </div>
     <div class="mfoot">
       <button type="button" class="btn btn-pri" onclick="closeModal('mCapaListModal')">ปิดหน้าต่าง</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal แสดงรายละเอียดย่อยของจ็อบแต่ละบริษัทลูกค้าเมื่อคลิก -->
+<div id="mCustomerJobsModal" class="modal hide">
+  <div class="mbox" style="max-width:850px">
+    <div class="mhead">
+      <h3 id="customerJobsModalTitle" style="color:#5b21b6">🏢 รายละเอียดจ็อบงานของลูกค้า</h3>
+      <button type="button" class="btn btn-out" style="padding:4px 10px" onclick="closeModal('mCustomerJobsModal')">✕</button>
+    </div>
+    <div class="table-responsive" style="max-height:65vh;overflow-y:auto">
+      <table>
+        <thead>
+          <tr>
+            <th class="no-wrap">CAPA No. & ประเภท</th>
+            <th>จ็อบงาน / ชื่องาน</th>
+            <th class="no-wrap">เครื่องจักร / ผู้รับผิดชอบ</th>
+            <th class="no-wrap">วันที่รับเข้า</th>
+            <th class="no-wrap">จำนวนส่ง / รีเจ็ค</th>
+            <th>ปัญหาลูกค้า / รายละเอียดพร้อมจำนวนที่พบ</th>
+          </tr>
+        </thead>
+        <tbody id="customerJobsModalBody"></tbody>
+      </table>
+    </div>
+    <div class="mfoot">
+      <button type="button" class="btn btn-pri" onclick="closeModal('mCustomerJobsModal')">ปิดหน้าต่าง</button>
     </div>
   </div>
 </div>
@@ -458,7 +510,8 @@ function doPost(e) {
       txt.push(k+": "+(v.qty||0)+" ชิ้น"+(v.desc?" ("+v.desc+")":""));
       clean[k] = {qty: Number(v.qty)||0, desc: v.desc||"", imgs: v.imgs||(v.img?[v.img]:[])};
     });
-    sheet.appendRow([new Date(),d.caseType||"Reject",d.capaNo,d.receiveNo,d.jobNo,d.jobName,d.customer,d.supervisor,d.capaOwner||"",d.machine,d.receiveDate||"",d.startDate||"",d.endDate||"",d.capaDueDate||"",d.capaStatus||"ยังไม่ตอบ",s,r,w,g,s?(r/s*100).toFixed(2)+"%":"0%",s?(w/s*100).toFixed(2)+"%":"0%",s?(g/s*100).toFixed(2)+"%":"0%",txt.join(" | "),JSON.stringify(clean),d.custIssue||""]);
+    const todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
+    sheet.appendRow([todayStr,d.caseType||"Reject",d.capaNo,d.receiveNo,d.jobNo,d.jobName,d.customer,d.supervisor,d.capaOwner||"",d.machine,d.receiveDate||"",d.startDate||"",d.endDate||"",d.capaDueDate||"",d.capaStatus||"ยังไม่ตอบ",s,r,w,g,s?(r/s*100).toFixed(2)+"%":"0%",s?(w/s*100).toFixed(2)+"%":"0%",s?(g/s*100).toFixed(2)+"%":"0%",txt.join(" | "),JSON.stringify(clean),d.custIssue||""]);
     SpreadsheetApp.flush();
     return ContentService.createTextOutput(JSON.stringify({status:"success"})).setMimeType(ContentService.MimeType.JSON);
   } catch (err) { return ContentService.createTextOutput(JSON.stringify({status:"error",message:err.toString()})).setMimeType(ContentService.MimeType.JSON); }
@@ -468,7 +521,14 @@ function doGet() {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
     if (!sheet) return ContentService.createTextOutput("[]").setMimeType(ContentService.MimeType.JSON);
     const rows = sheet.getDataRange().getValues(), out = [];
-    const fmt = v => v instanceof Date ? Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd") : String(v||"");
+    const fmt = v => {
+      if (v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd");
+      const str = String(v || "").trim();
+      if (str.length >= 10 && str.charAt(4) === '-' && str.charAt(7) === '-') {
+        return str.substring(0, 10);
+      }
+      return str;
+    };
     for (let i = rows.length - 1; i >= 1; i--) {
       const r = rows[i]; let iss = {}; try { iss = r[23] ? JSON.parse(r[23]) : {}; } catch(e){}
       Object.keys(iss).forEach(k => { if (iss[k].img && !iss[k].imgs) { iss[k].imgs = [iss[k].img]; } });
@@ -557,11 +617,9 @@ function goTab(t) {
 function openModal(id) { document.getElementById(id).classList.remove("hide"); }
 function closeModal(id) { document.getElementById(id).classList.add("hide"); }
 
-// ฟังก์ชันจัดการตัวกรองเดือนและวันที่
 function onMonthChange() {
   const m = document.getElementById("fMonth").value;
   if(m) {
-    // ล้างช่วงวันที่แบบระบุวัน เพื่อไม่ให้ซ้ำซ้อนกัน
     document.getElementById("fDateStart").value = "";
     document.getElementById("fDateEnd").value = "";
   }
@@ -572,7 +630,6 @@ function onDateRangeChange() {
   const ds = document.getElementById("fDateStart").value;
   const de = document.getElementById("fDateEnd").value;
   if(ds || de) {
-    // ล้างช่องเลือกเดือน เมื่อมีการระบุช่วงวันเอง
     document.getElementById("fMonth").value = "";
   }
   draw();
@@ -585,7 +642,6 @@ function clrDateFilter() {
   draw();
 }
 
-// ฟังก์ชันช่วยแปลงรูปแบบวันที่ให้เป็นมาตรฐาน YYYY-MM-DD (ป้องกันกรณี Google Sheets ส่งค่าวันที่รูปแบบอื่นมา)
 function normDateStr(val) {
   if(!val) return "";
   const s = String(val).trim();
@@ -593,7 +649,7 @@ function normDateStr(val) {
   if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
     const parts = s.split('/');
     let y = parseInt(parts[2], 10);
-    if(y > 2400) y -= 543; // แปลง พ.ศ. เป็น ค.ศ. อัตโนมัติ
+    if(y > 2400) y -= 543;
     return `${y}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
   }
   const d = new Date(s);
@@ -603,7 +659,7 @@ function normDateStr(val) {
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
   }
-  return s;
+  return s.substring(0, 10);
 }
 
 function viewDetail(index) {
@@ -643,7 +699,7 @@ function viewDetail(index) {
       <div class="det-iss-card">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <strong style="color:#2e1065;font-size:0.9rem">● ${name}</strong>
-          <span style="background:#5b21b6;color:#fff;padding:2px 9px;border-radius:99px;font-size:0.78rem;font-weight:600">${Number(info.qty||0).toLocaleString()} ชิ้น</span>
+          <span style="background:#5b21b6;color:#fff;padding:2px 9px;border-radius:99px;font-size:0.78rem;font-weight:600" class="no-wrap">${Number(info.qty||0).toLocaleString()} ชิ้น</span>
         </div>
         ${info.desc ? `<div style="margin-top:6px;font-size:0.83rem;color:#334155"><strong>รายละเอียด:</strong> ${info.desc}</div>` : ''}
         ${imgsHtml}
@@ -666,17 +722,17 @@ function viewDetail(index) {
       <div><span>หัวหน้าเครื่อง</span><strong>${r.supervisor || '-'}</strong></div>
       <div><span>ผู้รับผิดชอบ CAPA</span><strong style="color:#5b21b6">${r.capaOwner || '-'}</strong></div>
       <div><span>เครื่องจักร / แผนก</span><strong>${r.machine || '-'}</strong></div>
-      <div><span>วันที่รับเข้ารีเจ็ค</span><strong>${r.receiveDate || '-'}</strong></div>
-      <div><span>วันที่เริ่มคัด - คัดเสร็จ</span><strong>${r.startDate || '-'} ถึง ${r.endDate || 'ยังไม่เสร็จ'}</strong></div>
-      <div><span>CAPA Due Date</span><strong>${r.capaDueDate || '-'}</strong></div>
+      <div><span>วันที่รับเข้ารีเจ็ค</span><strong class="no-wrap">${normDateStr(r.receiveDate) || '-'}</strong></div>
+      <div><span>วันที่เริ่มคัด - คัดเสร็จ</span><strong class="no-wrap">${normDateStr(r.startDate) || '-'} ถึง ${normDateStr(r.endDate) || 'ยังไม่เสร็จ'}</strong></div>
+      <div><span>CAPA Due Date</span><strong class="no-wrap">${normDateStr(r.capaDueDate) || '-'}</strong></div>
       <div><span>สถานะ CAPA</span><span class="tag-due ${cls}">${lbl}</span></div>
     </div>
 
     <div class="det-grid" style="background:#f5f3ff;border-color:#ddd6fe">
-      <div><span>จำนวนที่ส่ง</span><strong>${s.toLocaleString()} ชิ้น</strong></div>
-      <div><span>จำนวนที่รีเจ็ค/ร้องเรียน</span><strong style="color:#5b21b6">${rej.toLocaleString()} ชิ้น (${s>0?(rej/s*100).toFixed(2):'0.00'}%)</strong></div>
-      <div><span>จำนวนของเสีย</span><strong style="color:#dc2626">${wst.toLocaleString()} ชิ้น (${s>0?(wst/s*100).toFixed(2):'0.00'}%)</strong></div>
-      <div><span>ของดีที่คัดได้</span><strong style="color:#059669">${gd.toLocaleString()} ชิ้น (${s>0?(gd/s*100).toFixed(2):'0.00'}%)</strong></div>
+      <div><span>จำนวนที่ส่ง</span><strong class="no-wrap">${s.toLocaleString()} ชิ้น</strong></div>
+      <div><span>จำนวนที่รีเจ็ค/ร้องเรียน</span><strong style="color:#5b21b6" class="no-wrap">${rej.toLocaleString()} ชิ้น (${s>0?(rej/s*100).toFixed(2):'0.00'}%)</strong></div>
+      <div><span>จำนวนของเสีย</span><strong style="color:#dc2626" class="no-wrap">${wst.toLocaleString()} ชิ้น (${s>0?(wst/s*100).toFixed(2):'0.00'}%)</strong></div>
+      <div><span>ของดีที่คัดได้</span><strong style="color:#059669" class="no-wrap">${gd.toLocaleString()} ชิ้น (${s>0?(gd/s*100).toFixed(2):'0.00'}%)</strong></div>
     </div>
 
     <h4 style="color:#2e1065;margin-bottom:8px;font-size:0.95rem">🔍 รายละเอียดปัญหาที่พบและรูปภาพประกอบ (${issEntries.length} รายการ)</h4>
@@ -722,18 +778,85 @@ function openCapaStatusModal(statusFilter) {
       const cls = st === "ตอบแล้ว" ? "done" : (st === "เลยกำหนด" ? "over" : "ok");
       return `
       <tr class="row-click" onclick="closeModal('mCapaListModal');viewDetail(${realIdx})">
-        <td>
+        <td class="no-wrap">
           <strong>${r.capaNo}</strong>
           <div style="margin-top:3px"><span class="tag-type ${tp==='Complain'?'cmp':'rej'}">${tp}</span></div>
         </td>
         <td>${r.jobName || '-'}<br><small style="color:#64748b">${r.customer || '-'}</small></td>
-        <td><span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-weight:600">${r.machine}</span><br><small style="color:#475569">👤 ${r.capaOwner||'-'}</small></td>
-        <td><span class="tag-due ${cls}">${r.capaDueDate || '-'}</span></td>
-        <td><strong style="color:${colorStyle}">${Number(r.qtyReject||0).toLocaleString()} ชิ้น</strong></td>
+        <td class="no-wrap"><span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-weight:600">${r.machine}</span><br><small style="color:#475569">👤 ${r.capaOwner||'-'}</small></td>
+        <td class="no-wrap"><span class="tag-due ${cls}">${normDateStr(r.capaDueDate) || '-'}</span></td>
+        <td class="no-wrap"><strong style="color:${colorStyle}">${Number(r.qtyReject||0).toLocaleString()} ชิ้น</strong></td>
       </tr>
     `}).join("");
   }
   openModal('mCapaListModal');
+}
+
+function openCustomerJobsModal(customerName) {
+  const tbody = document.getElementById("customerJobsModalBody");
+  const titleEl = document.getElementById("customerJobsModalTitle");
+  
+  titleEl.innerHTML = `🏢 รายละเอียดจ็อบงานของลูกค้า: <span style="color:#2e1065">${customerName}</span>`;
+  
+  const ft=document.getElementById("fType").value, fm=document.getElementById("fMac").value, fs=document.getElementById("fSup").value, fo=document.getElementById("fOwner").value, fp=document.getElementById("fCap").value;
+  const fMonth=document.getElementById("fMonth").value;
+  const ds=document.getElementById("fDateStart").value, de=document.getElementById("fDateEnd").value;
+  
+  const customerJobs = recs.filter(r => {
+    if(r.customer !== customerName) return false;
+    if(ft && (r.caseType||"Reject")!==ft) return false;
+    if(fm && !(r.machine||"").includes(fm)) return false;
+    if(fs && r.supervisor!==fs) return false;
+    if(fo && r.capaOwner!==fo) return false;
+    if(fp && getStat(r)!==fp) return false;
+    
+    const recD = normDateStr(r.receiveDate);
+    if(fMonth) { if(!recD || !recD.startsWith(fMonth)) return false; }
+    if(ds || de) {
+      if(!recD) return false;
+      if(ds && recD < ds) return false;
+      if(de && recD > de) return false;
+    }
+    return true;
+  });
+
+  if(!customerJobs.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px">ไม่พบข้อมูลจ็อบงานสำหรับลูกค้านี้</td></tr>`;
+  } else {
+    tbody.innerHTML = customerJobs.map(r => {
+      const realIdx = recs.indexOf(r);
+      const tp = r.caseType || "Reject";
+      const issText = r.issues ? Object.entries(r.issues).map(([k, v]) => `${k} (<span style="color:#5b21b6;font-weight:600" class="no-wrap">${Number(v.qty||0).toLocaleString()} ชิ้น</span>)`).join(", ") : "";
+      
+      return `
+        <tr class="row-click" onclick="closeModal('mCustomerJobsModal');viewDetail(${realIdx})" title="คลิกเพื่อดูรายละเอียดเต็มของเคสนี้">
+          <td class="no-wrap">
+            <strong>${r.capaNo}</strong>
+            <div style="margin-top:3px"><span class="tag-type ${tp==='Complain'?'cmp':'rej'}">${tp}</span></div>
+            ${r.receiveNo ? `<div style="margin-top:2px"><small style="color:#5b21b6;font-weight:600">${r.receiveNo}</small></div>` : ''}
+          </td>
+          <td>
+            <strong>${r.jobName || '-'}</strong><br>
+            <small style="color:#0284c7">Job: ${r.jobNo || '-'}</small>
+          </td>
+          <td class="no-wrap">
+            <span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-weight:600">${r.machine}</span>
+            <div style="font-size:0.75rem;color:#475569;margin-top:2px">👤 ${r.capaOwner || '-'}</div>
+          </td>
+          <td style="font-size:0.8rem" class="no-wrap">${normDateStr(r.receiveDate) || '-'}</td>
+          <td class="no-wrap" style="font-size:0.82rem">
+            ส่ง: ${Number(r.qtySent||0).toLocaleString()}<br>
+            <span style="color:#dc2626;font-weight:600">รีเจ็ค: ${Number(r.qtyReject||0).toLocaleString()}</span>
+          </td>
+          <td>
+            ${r.custIssue ? `<div style="color:#be123c;font-weight:600;font-size:0.78rem">📌 ${r.custIssue}</div>` : '-'}
+            ${issText ? `<div style="color:#475569;font-size:0.75rem;margin-top:3px">🔍 ปัญหาที่พบ: ${issText}</div>` : ''}
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+  openModal('mCustomerJobsModal');
 }
 
 function mkIss() {
@@ -855,18 +978,19 @@ async function saveRec(e) {
   }
 
   const machineStr = allMacs.join(", ");
+  const capaNoVal = document.getElementById("iCapa").value.trim();
 
   const rec = {
     caseType:document.getElementById("iType").value,
-    capaNo:document.getElementById("iCapa").value.trim(), receiveNo:document.getElementById("iRecNo").value.trim(),
+    capaNo:capaNoVal, receiveNo:document.getElementById("iRecNo").value.trim(),
     jobNo:document.getElementById("iJob").value.trim(), jobName:document.getElementById("iJName").value.trim(),
     customer:document.getElementById("iCus").value.trim(), supervisor:document.getElementById("iSup").value.trim(),
     capaOwner:document.getElementById("iOwner").value.trim(),
     machine:machineStr,
-    receiveDate:document.getElementById("iRecDate").value,
-    startDate:document.getElementById("iStartDate").value,
-    endDate:document.getElementById("iEndDate").value,
-    capaDueDate:document.getElementById("iDue").value,
+    receiveDate:normDateStr(document.getElementById("iRecDate").value),
+    startDate:normDateStr(document.getElementById("iStartDate").value),
+    endDate:normDateStr(document.getElementById("iEndDate").value),
+    capaDueDate:normDateStr(document.getElementById("iDue").value),
     capaStatus:document.getElementById("iCapStat").value,
     custIssue:document.getElementById("iCustIssue").value.trim(),
     qtySent:Number(document.getElementById("qSent").value)||0, qtyReject:Number(document.getElementById("qRej").value)||0,
@@ -874,9 +998,14 @@ async function saveRec(e) {
     issues:{...selIss}
   };
 
-  if(editIdx >= 0) { 
-    recs[editIdx] = rec; 
-    alert("แก้ไขข้อมูลเรียบร้อยแล้ว!"); 
+  let targetIdx = editIdx;
+  if (targetIdx < 0) {
+    targetIdx = recs.findIndex(r => r.capaNo.trim().toLowerCase() === capaNoVal.toLowerCase());
+  }
+
+  if(targetIdx >= 0) { 
+    recs[targetIdx] = rec; 
+    alert("พบเลขที่ CAPA เดิม อัปเดตข้อมูลรายการเดิมเรียบร้อยแล้ว!"); 
   } else { 
     recs.unshift(rec); 
     alert("บันทึกข้อมูลเรียบร้อยแล้ว!"); 
@@ -965,32 +1094,33 @@ function renderTableList() {
     const cls = st === "ตอบแล้ว" ? "done" : (st === "เลยกำหนด" ? "over" : "ok");
     const lbl = st === "ตอบแล้ว" ? "✅ ตอบแล้ว" : (st === "เลยกำหนด" ? "⚠️ ยังไม่ตอบ (เลยกำหนด)" : "⏳ ยังไม่ตอบ (ในกำหนด)");
     const hasImg = r.issues && Object.values(r.issues).some(v => (v.imgs && v.imgs.length > 0) || v.img);
-    const issKeys = r.issues ? Object.keys(r.issues) : [];
+    const issText = r.issues ? Object.entries(r.issues).map(([k, v]) => `${k} (<span style="color:#5b21b6;font-weight:600" class="no-wrap">${Number(v.qty||0).toLocaleString()} ชิ้น</span>)`).join(", ") : "";
+    
     return `
       <tr>
-        <td>
-          <div style="white-space:nowrap"><strong>${r.capaNo}</strong> ${hasImg ? '<span title="มีรูปภาพแนบ">📷</span>' : ''}</div>
+        <td class="no-wrap">
+          <div><strong>${r.capaNo}</strong> ${hasImg ? '<span title="มีรูปภาพแนบ">📷</span>' : ''}</div>
           <div style="margin-top:3px"><span class="tag-type ${tp==='Complain'?'cmp':'rej'}">${tp}</span></div>
-          ${r.receiveNo ? `<div style="margin-top:3px"><small style="color:#5b21b6;font-weight:600;white-space:nowrap">${r.receiveNo}</small></div>` : ''}
+          ${r.receiveNo ? `<div style="margin-top:3px"><small style="color:#5b21b6;font-weight:600">${r.receiveNo}</small></div>` : ''}
         </td>
         <td>
           <strong>${r.jobName || '-'}</strong><br>
           <small style="color:#64748b">🏢 ${r.customer || '-'}</small>
           ${r.custIssue ? `<div style="font-size:0.76rem;color:#be123c;margin-top:3px;font-weight:600">📌 ปัญหาลูกค้า: ${r.custIssue}</div>` : ''}
-          ${issKeys.length ? `<div style="font-size:0.74rem;color:#475569;margin-top:2px">🔍 ปัญหาที่พบ: ${issKeys.join(", ")}</div>` : ''}
+          ${issText ? `<div style="font-size:0.74rem;color:#475569;margin-top:3px">🔍 ปัญหาที่พบ: ${issText}</div>` : ''}
         </td>
-        <td>
+        <td class="no-wrap">
           <span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-weight:600">${r.machine}</span>
           <div style="font-size:0.78rem;color:#475569;margin-top:2px">👤 ${r.capaOwner || '-'}</div>
         </td>
-        <td style="font-size:0.78rem;line-height:1.45;white-space:nowrap">
-          <div>📥 รับเข้า: <strong>${r.receiveDate || '-'}</strong></div>
-          <div style="color:#475569">▶️ เริ่มคัด: ${r.startDate || '-'}</div>
-          <div style="color:#059669">✅ คัดเสร็จ: ${r.endDate || 'ยังไม่เสร็จ'}</div>
+        <td style="font-size:0.78rem;line-height:1.45" class="no-wrap">
+          <div>📥 รับเข้า: <strong>${normDateStr(r.receiveDate) || '-'}</strong></div>
+          <div style="color:#475569">▶️ เริ่มคัด: ${normDateStr(r.startDate) || '-'}</div>
+          <div style="color:#059669">✅ คัดเสร็จ: ${normDateStr(r.endDate) || 'ยังไม่เสร็จ'}</div>
         </td>
-        <td><div style="white-space:nowrap;margin-bottom:3px">Due: ${r.capaDueDate || '-'}</div><span class="tag-due ${cls}">${lbl}</span></td>
-        <td style="white-space:nowrap">ส่ง: ${Number(r.qtySent||0).toLocaleString()}<br><span style="color:#dc2626">จำนวน: ${Number(r.qtyReject||0).toLocaleString()}</span></td>
-        <td>
+        <td class="no-wrap"><div style="margin-bottom:3px">Due: ${normDateStr(r.capaDueDate) || '-'}</div><span class="tag-due ${cls}">${lbl}</span></td>
+        <td class="no-wrap">ส่ง: ${Number(r.qtySent||0).toLocaleString()}<br><span style="color:#dc2626">จำนวน: ${Number(r.qtyReject||0).toLocaleString()}</span></td>
+        <td class="no-wrap">
           <div style="display:flex;gap:5px">
             <button type="button" class="btn btn-info btn-sm" onclick="viewDetail(${idx})" title="ดูรายละเอียดและรูปภาพ">🔍</button>
             <button type="button" class="btn btn-pri btn-sm" onclick="editRecord(${idx})" title="แก้ไข">✏️</button>
@@ -1036,15 +1166,12 @@ function draw() {
     if(fo && r.capaOwner!==fo) return false;
     if(fp && getStat(r)!==fp) return false;
     
-    // แปลงวันที่รับเข้าให้เป็นรูปแบบมาตรฐาน YYYY-MM-DD ก่อนเปรียบเทียบ
     const recD = normDateStr(r.receiveDate);
 
-    // กรณีเลือกเฉพาะเดือน (YYYY-MM)
     if(fMonth) {
       if(!recD || !recD.startsWith(fMonth)) return false;
     }
 
-    // กรณีเลือกช่วงวันที่ (YYYY-MM-DD)
     if(ds || de) {
       if(!recD) return false;
       if(ds && recD < ds) return false;
@@ -1080,13 +1207,60 @@ function draw() {
       const realIdx = recs.indexOf(r);
       return `
         <tr class="row-click" onclick="viewDetail(${realIdx})">
-          <td><strong>${r.capaNo}</strong></td>
+          <td class="no-wrap"><strong>${r.capaNo}</strong></td>
           <td><strong>${r.jobName || '-'}</strong><br><small style="color:#64748b">Job: ${r.jobNo || '-'}</small></td>
           <td>${r.customer || '-'}<br><span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-size:0.75rem">${r.machine}</span></td>
-          <td>${Number(r.qtySent||0).toLocaleString()} ชิ้น</td>
-          <td><strong style="color:#dc2626">${Number(r.qtyReject||0).toLocaleString()} ชิ้น</strong></td>
-          <td><span class="tag-due ok">⏳ กำลังคัด (เริ่ม: ${r.startDate})</span></td>
-          <td><button type="button" class="btn btn-info btn-sm" onclick="event.stopPropagation();viewDetail(${realIdx})">🔍 ดูข้อมูล</button></td>
+          <td class="no-wrap">${Number(r.qtySent||0).toLocaleString()} ชิ้น</td>
+          <td class="no-wrap"><strong style="color:#dc2626">${Number(r.qtyReject||0).toLocaleString()} ชิ้น</strong></td>
+          <td class="no-wrap"><span class="tag-due ok">⏳ กำลังคัด (เริ่ม: ${normDateStr(r.startDate)})</span></td>
+          <td class="no-wrap"><button type="button" class="btn btn-info btn-sm" onclick="event.stopPropagation();viewDetail(${realIdx})">🔍 ดูข้อมูล</button></td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  const customerSummary = {};
+  fl.forEach(r => {
+    const cus = r.customer || "ไม่ระบุ";
+    if(!customerSummary[cus]) {
+      customerSummary[cus] = { count: 0, sent: 0, reject: 0, waste: 0, issuesMap: {}, custIssues: [] };
+    }
+    customerSummary[cus].count++;
+    customerSummary[cus].sent += Number(r.qtySent)||0;
+    customerSummary[cus].reject += Number(r.qtyReject)||0;
+    customerSummary[cus].waste += Number(r.qtyWaste)||0;
+    if(r.custIssue) customerSummary[cus].custIssues.push(r.custIssue);
+    if(r.issues) {
+      Object.entries(r.issues).forEach(([k, v]) => {
+        customerSummary[cus].issuesMap[k] = (customerSummary[cus].issuesMap[k] || 0) + (Number(v.qty) || 0);
+      });
+    }
+  });
+
+  const cusSumBody = document.getElementById("customerSummaryTableBody");
+  const cusEntries = Object.entries(customerSummary);
+  if(!cusEntries.length) {
+    cusSumBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px">ไม่มีข้อมูลลูกค้า</td></tr>`;
+  } else {
+    cusSumBody.innerHTML = cusEntries.map(([cus, data]) => {
+      const rejPct = data.sent > 0 ? (data.reject / data.sent * 100).toFixed(2) : "0.00";
+      const wstPct = data.sent > 0 ? (data.waste / data.sent * 100).toFixed(2) : "0.00";
+      const uniqueIssues = Object.entries(data.issuesMap).map(([k, q]) => `${k} (<span style="color:#5b21b6;font-weight:600" class="no-wrap">${q.toLocaleString()} ชิ้น</span>)`).join(", ");
+      const uniqueCustIssues = [...new Set(data.custIssues)].join(" | ");
+      return `
+        <tr class="row-click" onclick="openCustomerJobsModal('${cus.replace(/'/g, "\\'")}')" title="คลิกเพื่อดูรายละเอียดจ็อบของ ${cus}">
+          <td class="no-wrap">
+            <strong style="color:#5b21b6;text-decoration:underline">${cus}</strong>
+            <div style="font-size:0.72rem;color:#0284c7;margin-top:2px">🔍 คลิกเพื่อดูจ็อบย่อย</div>
+          </td>
+          <td class="no-wrap">${data.count} เคส</td>
+          <td class="no-wrap">${data.sent.toLocaleString()}</td>
+          <td class="no-wrap"><strong style="color:#dc2626">${data.reject.toLocaleString()}</strong> (${rejPct}%)</td>
+          <td class="no-wrap"><strong style="color:#e11d48">${data.waste.toLocaleString()}</strong> (${wstPct}%)</td>
+          <td>
+            ${uniqueCustIssues ? `<div style="color:#be123c;font-weight:600;font-size:0.8rem">📌 ${uniqueCustIssues}</div>` : '-'}
+            ${uniqueIssues ? `<div style="color:#475569;font-size:0.75rem;margin-top:3px">🔍 ปัญหาที่ตรวจพบ: ${uniqueIssues}</div>` : ''}
+          </td>
         </tr>
       `;
     }).join("");
@@ -1100,13 +1274,14 @@ function draw() {
     if(r.machine) {
       r.machine.split(',').forEach(m => {
         const mc = m.trim();
-        if(mc) msum[mc]=(msum[mc]||0)+(Number(r.qtyReject)||0);
+        if(mc) msum[mc]=(msum[mc]||0)+(Number(r.qtyReject||0));
       });
     }
   });
   bar("cMac", Object.entries(msum).sort((a,b)=>b[1]-a[1]), false, "#5b21b6");
 
-  const csum={}; fl.forEach(r=>csum[r.customer]=(csum[r.customer]||0)+(Number(r.qtyReject)||0));
+  // แก้ไขวงเล็บที่หายไปตรงนี้เรียบร้อยแล้วค่ะ
+  const csum={}; fl.forEach(r=>csum[r.customer]=(csum[r.customer]||0)+(Number(r.qtyReject||0)));
   bar("cCus", Object.entries(csum).sort((a,b)=>b[1]-a[1]), false, "#eab308");
 
   const sumBody = document.getElementById("sumTableBody");
@@ -1119,35 +1294,35 @@ function draw() {
       const tp = r.caseType || "Reject";
       const cls = st === "ตอบแล้ว" ? "done" : (st === "เลยกำหนด" ? "over" : "ok");
       const lbl = st === "ตอบแล้ว" ? "✅ ตอบแล้ว" : (st === "เลยกำหนด" ? "⚠️ เลยกำหนด" : "⏳ อยู่ในกำหนด");
-      const issKeys = r.issues ? Object.keys(r.issues) : [];
+      const issText = r.issues ? Object.entries(r.issues).map(([k, v]) => `${k} (<span style="color:#5b21b6;font-weight:600" class="no-wrap">${Number(v.qty||0).toLocaleString()} ชิ้น</span>)`).join(", ") : "";
       const hasImg = r.issues && Object.values(r.issues).some(v => (v.imgs && v.imgs.length > 0) || v.img);
       
       return `
         <tr class="row-click" onclick="viewDetail(${realIdx})">
-          <td>
-            <div style="white-space:nowrap"><strong>${r.capaNo}</strong></div>
+          <td class="no-wrap">
+            <div><strong>${r.capaNo}</strong></div>
             <div style="margin-top:3px"><span class="tag-type ${tp==='Complain'?'cmp':'rej'}">${tp}</span></div>
-            <div style="margin-top:4px;white-space:nowrap">
+            <div style="margin-top:4px">
               <small style="color:#5b21b6;font-weight:600">${r.receiveNo || '-'}</small> | 
               <small style="color:#0284c7;font-weight:600">Job: ${r.jobNo || '-'}</small>
             </div>
-            ${r.custIssue ? `<div style="margin-top:6px;padding:4px 7px;background:#fff1f2;border-left:3px solid #e11d48;border-radius:4px;font-size:0.75rem;color:#9f1239;line-height:1.4"><strong>📌 ปัญหาลูกค้า:</strong> ${r.custIssue}</div>` : ''}
+            ${r.custIssue ? `<div style="margin-top:6px;padding:4px 7px;background:#fff1f2;border-left:3px solid #e11d48;border-radius:4px;font-size:0.75rem;color:#9f1239;line-height:1.4;white-space:normal"><strong>📌 ปัญหาลูกค้า:</strong> ${r.custIssue}</div>` : ''}
           </td>
           <td>
             <strong>${r.jobName || '-'}</strong><br>
             <small style="color:#64748b">${r.customer || '-'}</small>
           </td>
-          <td>
+          <td class="no-wrap">
             <span style="background:#ede9fe;color:#5b21b6;padding:2px 6px;border-radius:4px;font-weight:600">${r.machine}</span>
-            <div style="font-size:0.75rem;color:#475569;margin-top:2px;white-space:nowrap">👤 ${r.capaOwner || '-'}</div>
+            <div style="font-size:0.75rem;color:#475569;margin-top:2px">👤 ${r.capaOwner || '-'}</div>
           </td>
           <td style="font-size:0.8rem">
-            ${issKeys.length ? `<span style="color:#2e1065;font-weight:600">${issKeys.slice(0,2).join(", ") + (issKeys.length>2 ? ` (+${issKeys.length-2})` : '')}</span>` : '-'}
-            ${hasImg ? '<div style="color:#0284c7;font-size:0.74rem;font-weight:600;margin-top:2px">📷 มีรูปภาพแนบ</div>' : ''}
+            ${issText ? `<div style="color:#2e1065;line-height:1.4">${issText}</div>` : '-'}
+            ${hasImg ? '<div style="color:#0284c7;font-size:0.74rem;font-weight:600;margin-top:3px">📷 มีรูปภาพแนบ</div>' : ''}
           </td>
-          <td><span class="tag-due ${cls}">${lbl}</span></td>
-          <td style="white-space:nowrap"><strong style="color:#dc2626">${Number(r.qtyReject||0).toLocaleString()}</strong> <small>ชิ้น</small></td>
-          <td><button type="button" class="btn btn-info btn-sm" onclick="event.stopPropagation();viewDetail(${realIdx})">🔍 ดูข้อมูล</button></td>
+          <td class="no-wrap"><span class="tag-due ${cls}">${lbl}</span></td>
+          <td class="no-wrap"><strong style="color:#dc2626">${Number(r.qtyReject||0).toLocaleString()}</strong> <small>ชิ้น</small></td>
+          <td class="no-wrap"><button type="button" class="btn btn-info btn-sm" onclick="event.stopPropagation();viewDetail(${realIdx})">🔍 ดูข้อมูล</button></td>
         </tr>
       `;
     }).join("");
@@ -1158,7 +1333,7 @@ function bar(id, arr, useCol, col) {
   const el = document.getElementById(id);
   if(!arr.length){ el.innerHTML=`<div style="color:#94a3b8;text-align:center;padding:20px;font-size:.85rem">ยังไม่มีข้อมูล</div>`; return; }
   const mx = Math.max(...arr.map(d=>d[1]),1);
-  el.innerHTML = arr.map(([l,v])=>`<div class="brow"><div class="binfo"><span>${l}</span><span>${v.toLocaleString()} ชิ้น</span></div><div class="btrack"><div class="bfill" style="width:${Math.round(v/mx*100)}%;background:${useCol?(ICOL[l]||"#5b21b6"):col}"></div></div></div>`).join("");
+  el.innerHTML = arr.map(([l,v])=>`<div class="brow"><div class="binfo"><span>${l}</span><span class="no-wrap">${v.toLocaleString()} ชิ้น</span></div><div class="btrack"><div class="bfill" style="width:${Math.round(v/mx*100)}%;background:${useCol?(ICOL[l]||"#5b21b6"):col}"></div></div></div>`).join("");
 }
 
 function updOpt(id, arr, def, cur) {
